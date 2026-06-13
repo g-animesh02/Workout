@@ -13,14 +13,15 @@ object ExerciseLibrary {
     val all: List<Exercise> by lazy {
         listOf(
             jumpingJacks, highKnees, burpees, mountainClimbers, jumpSquats, skaters,
-            buttKicks, plankJacks,
+            buttKicks, plankJacks, squatThrust, tuckJump,
             pushUp, squat, lunge, gluteBridge, supermanRaise, wallSit, calfRaise,
             pikePushUp, tricepDip, reverseLunge, singleLegDeadlift, inchworm,
+            diamondPushUp, bulgarianSplitSquat, stepUp,
             plank, sidePlank, bicycleCrunch, deadBug, legRaise, russianTwist,
-            hollowHold, flutterKicks,
-            jogInPlace, marchInPlace,
+            hollowHold, flutterKicks, vUp, reverseCrunch, plankShoulderTap, birdDog,
+            jogInPlace, marchInPlace, fastFeet, shadowBoxing,
             childPose, catCow, downwardDog, worldsGreatest, hamstringStretch,
-            chestOpener
+            chestOpener, armCircles, cobraStretch, lungeWithTwist
         ) + GymExerciseLibrary.all
     }
 
@@ -717,5 +718,268 @@ object ExerciseLibrary {
         workSeconds = 30,
         restSeconds = 0,
         tips = listOf("Keep your neck relaxed.", "Don't force the range — go to a gentle stretch.")
+    )
+
+    // ---------------------------------------------------------------------
+    // Additional exercises
+    // ---------------------------------------------------------------------
+
+    val squatThrust = Exercise(
+        id = "squat_thrust",
+        name = "Squat Thrust",
+        category = WorkoutType.HIIT,
+        description = "A burpee without the jump or push-up — squat, kick the legs back to a plank, then return.",
+        instructions = listOf(
+            "Stand with feet shoulder-width apart.",
+            "Squat down and place your hands on the floor.",
+            "Jump or step both feet back into a plank.",
+            "Jump or step your feet back to your hands.",
+            "Stand up tall and repeat."
+        ),
+        targetMuscles = listOf("Full body", "Core", "Legs"),
+        workSeconds = 40,
+        restSeconds = 20,
+        tips = listOf("Keep your back flat in the plank.", "Step instead of jump to lower the impact.")
+    )
+
+    val tuckJump = Exercise(
+        id = "tuck_jump",
+        name = "Tuck Jump",
+        category = WorkoutType.HIIT,
+        description = "An explosive vertical jump drawing the knees up to the chest, building leg power.",
+        instructions = listOf(
+            "Stand with feet hip-width apart and knees softly bent.",
+            "Swing your arms down, then jump explosively upward.",
+            "Drive your knees up toward your chest at the top.",
+            "Land softly with bent knees.",
+            "Reset and repeat with control."
+        ),
+        targetMuscles = listOf("Quads", "Glutes", "Calves", "Core"),
+        workSeconds = 30,
+        restSeconds = 30,
+        tips = listOf("Land quietly to absorb impact.", "Skip the knee tuck if it's too intense.")
+    )
+
+    val fastFeet = Exercise(
+        id = "fast_feet",
+        name = "Fast Feet",
+        category = WorkoutType.CARDIO,
+        description = "Rapid, small running steps on the balls of your feet to spike your heart rate.",
+        instructions = listOf(
+            "Stand in a slight athletic crouch, knees bent.",
+            "Shift your weight onto the balls of your feet.",
+            "Run in place as fast as you can with very small, quick steps.",
+            "Pump your arms and stay low.",
+            "Keep the cadence high for the whole interval."
+        ),
+        targetMuscles = listOf("Calves", "Quads", "Cardiovascular system"),
+        workSeconds = 30,
+        restSeconds = 20,
+        tips = listOf("Stay light and quick.", "Keep your chest up and core engaged.")
+    )
+
+    val shadowBoxing = Exercise(
+        id = "shadow_boxing",
+        name = "Shadow Boxing",
+        category = WorkoutType.CARDIO,
+        description = "Throw controlled punches while moving to raise the heart rate and work the upper body.",
+        instructions = listOf(
+            "Stand with one foot slightly forward and hands up by your chin.",
+            "Throw straight punches alternating hands, rotating your torso.",
+            "Stay light on your feet, bobbing and moving.",
+            "Mix in jabs, crosses and hooks at a steady pace.",
+            "Keep your core tight and breathe with each punch."
+        ),
+        targetMuscles = listOf("Shoulders", "Arms", "Core", "Cardiovascular system"),
+        workSeconds = 40,
+        restSeconds = 20,
+        tips = listOf("Don't lock out your elbows.", "Keep your hands up to protect your face.")
+    )
+
+    val diamondPushUp = Exercise(
+        id = "diamond_push_up",
+        name = "Diamond Push-Up",
+        category = WorkoutType.STRENGTH,
+        description = "A close-hand push-up that shifts the emphasis onto the triceps.",
+        instructions = listOf(
+            "Start in a high plank and bring your hands together under your chest.",
+            "Touch your index fingers and thumbs to form a diamond shape.",
+            "Keep your body in a straight line and brace your core.",
+            "Bend your elbows to lower your chest toward your hands.",
+            "Press back up to straight arms."
+        ),
+        targetMuscles = listOf("Triceps", "Chest", "Front shoulders"),
+        sets = 3,
+        reps = "6–12 reps",
+        restSeconds = 60,
+        tips = listOf("Drop to your knees to scale it down.", "Keep your elbows fairly close to your body.")
+    )
+
+    val bulgarianSplitSquat = Exercise(
+        id = "bulgarian_split_squat",
+        name = "Bulgarian Split Squat",
+        category = WorkoutType.STRENGTH,
+        description = "A rear-foot-elevated single-leg squat that builds serious leg and glute strength.",
+        instructions = listOf(
+            "Stand a couple of feet in front of a chair or bench, facing away.",
+            "Place the top of one foot on the bench behind you.",
+            "Keep your chest up and your front foot flat.",
+            "Bend your front knee to lower straight down.",
+            "Drive through your front heel to return to standing, then switch legs."
+        ),
+        targetMuscles = listOf("Quads", "Glutes", "Hamstrings"),
+        sets = 3,
+        reps = "8–12 reps per leg",
+        restSeconds = 60,
+        tips = listOf("Keep most of your weight on the front leg.", "Hold a wall for balance if needed.")
+    )
+
+    val stepUp = Exercise(
+        id = "step_up",
+        name = "Step-Up",
+        category = WorkoutType.STRENGTH,
+        description = "Stepping onto a raised surface to build single-leg strength and balance.",
+        instructions = listOf(
+            "Stand facing a sturdy chair, bench or step.",
+            "Place one whole foot on the step.",
+            "Drive through that heel to stand all the way up on the step.",
+            "Step back down with control under the same leg.",
+            "Complete your reps, then switch legs."
+        ),
+        targetMuscles = listOf("Quads", "Glutes", "Hamstrings"),
+        equipment = "Sturdy step or bench",
+        sets = 3,
+        reps = "10 reps per leg",
+        restSeconds = 45,
+        tips = listOf("Push through the heel, not the toes.", "Keep your knee tracking over your foot.")
+    )
+
+    val vUp = Exercise(
+        id = "v_up",
+        name = "V-Up",
+        category = WorkoutType.CORE,
+        description = "A dynamic sit-up that lifts the arms and legs together into a V to work the whole core.",
+        instructions = listOf(
+            "Lie flat on your back with arms extended overhead and legs straight.",
+            "Brace your core.",
+            "Simultaneously lift your legs and torso, reaching your hands toward your toes.",
+            "Form a V shape, balancing on your hips.",
+            "Lower back down with control without letting your feet touch."
+        ),
+        targetMuscles = listOf("Rectus abdominis", "Hip flexors"),
+        sets = 3,
+        reps = "10–15 reps",
+        restSeconds = 30,
+        tips = listOf("Bend your knees to make it easier.", "Move smoothly rather than using momentum.")
+    )
+
+    val reverseCrunch = Exercise(
+        id = "reverse_crunch",
+        name = "Reverse Crunch",
+        category = WorkoutType.CORE,
+        description = "A crunch variation that curls the hips toward the chest to target the lower abs.",
+        instructions = listOf(
+            "Lie on your back with hands by your sides and knees bent over your hips.",
+            "Press your lower back into the floor.",
+            "Curl your hips upward, bringing your knees toward your chest.",
+            "Lift your hips a few inches off the floor.",
+            "Lower with control and repeat."
+        ),
+        targetMuscles = listOf("Lower abs", "Core"),
+        sets = 3,
+        reps = "12–15 reps",
+        restSeconds = 30,
+        tips = listOf("Use your abs, not momentum, to lift.", "Keep the movement small and controlled.")
+    )
+
+    val plankShoulderTap = Exercise(
+        id = "plank_shoulder_tap",
+        name = "Plank Shoulder Tap",
+        category = WorkoutType.CORE,
+        description = "A high-plank hold with alternating shoulder taps that challenges anti-rotation core strength.",
+        instructions = listOf(
+            "Start in a high plank with hands under shoulders, feet wide for stability.",
+            "Brace your core and squeeze your glutes.",
+            "Lift one hand to tap the opposite shoulder.",
+            "Return it and tap with the other hand.",
+            "Keep your hips as still as possible throughout."
+        ),
+        targetMuscles = listOf("Core", "Shoulders", "Obliques"),
+        workSeconds = 30,
+        restSeconds = 20,
+        tips = listOf("Widen your feet to reduce hip rocking.", "Move slowly and stay tight.")
+    )
+
+    val birdDog = Exercise(
+        id = "bird_dog",
+        name = "Bird Dog",
+        category = WorkoutType.CORE,
+        description = "An all-fours exercise extending opposite arm and leg to build core stability and balance.",
+        instructions = listOf(
+            "Start on all fours with hands under shoulders and knees under hips.",
+            "Brace your core and keep your back flat.",
+            "Extend your right arm forward and your left leg back.",
+            "Reach until they're level with your torso, then pause.",
+            "Return and repeat on the opposite side."
+        ),
+        targetMuscles = listOf("Core", "Lower back", "Glutes"),
+        sets = 3,
+        reps = "10 reps per side",
+        restSeconds = 30,
+        tips = listOf("Keep your hips square to the floor.", "Move slowly and don't arch your back.")
+    )
+
+    val armCircles = Exercise(
+        id = "arm_circles",
+        name = "Arm Circles",
+        category = WorkoutType.FLEXIBILITY,
+        description = "Controlled circling of the arms to warm up and mobilise the shoulders.",
+        instructions = listOf(
+            "Stand tall and extend both arms out to the sides at shoulder height.",
+            "Make small circles forward, gradually growing larger.",
+            "After a few seconds, reverse direction.",
+            "Keep your shoulders relaxed and core gently braced."
+        ),
+        targetMuscles = listOf("Shoulders"),
+        workSeconds = 30,
+        restSeconds = 0,
+        tips = listOf("Start small and build the size gradually.", "Breathe steadily throughout.")
+    )
+
+    val cobraStretch = Exercise(
+        id = "cobra_stretch",
+        name = "Cobra Stretch",
+        category = WorkoutType.FLEXIBILITY,
+        description = "A gentle backbend that stretches the abs and the front of the body.",
+        instructions = listOf(
+            "Lie face down with hands under your shoulders.",
+            "Press through your hands to lift your chest off the floor.",
+            "Keep your hips and legs on the ground.",
+            "Open your chest and lengthen your neck.",
+            "Hold and breathe, then lower down slowly."
+        ),
+        targetMuscles = listOf("Abs", "Lower back", "Chest"),
+        workSeconds = 40,
+        restSeconds = 0,
+        tips = listOf("Only lift as far as is comfortable.", "Keep your shoulders away from your ears.")
+    )
+
+    val lungeWithTwist = Exercise(
+        id = "lunge_with_twist",
+        name = "Lunge with Twist",
+        category = WorkoutType.FLEXIBILITY,
+        description = "A dynamic mobility move combining a lunge with a torso rotation to open the hips and spine.",
+        instructions = listOf(
+            "Step forward into a lunge with your right foot.",
+            "Keep your back tall and your front knee over your ankle.",
+            "Rotate your torso to the right over your front leg.",
+            "Return to center, push back to standing, and switch sides.",
+            "Move smoothly with your breath."
+        ),
+        targetMuscles = listOf("Hips", "Thoracic spine", "Glutes"),
+        sets = 2,
+        reps = "6 reps per side",
+        restSeconds = 0,
+        tips = listOf("Rotate from the mid-back, not the lower back.", "Keep the front heel planted.")
     )
 }

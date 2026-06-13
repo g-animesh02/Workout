@@ -55,6 +55,9 @@ fun WorkoutDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val accent = workout.type.color()
+    val steps = androidx.compose.runtime.remember(workout.id, level) {
+        com.fittrack.app.data.seed.LevelScaling.plan(workout.exercises, level)
+    }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -103,15 +106,16 @@ fun WorkoutDetailScreen(
             }
             item {
                 Text(
-                    "Exercises (${workout.exercises.size})",
+                    "Exercises (${steps.size}) · ${level.label}",
                     style = MaterialTheme.typography.titleLarge
                 )
             }
-            itemsIndexed(workout.exercises, key = { _, e -> e.id }) { index, exercise ->
+            itemsIndexed(steps, key = { index, _ -> index }) { index, step ->
                 ExerciseRow(
                     index = index + 1,
-                    exercise = exercise,
-                    onClick = { onExerciseClick(exercise.id) }
+                    exercise = step.exercise,
+                    dosage = if (step.reps != null) "${step.reps} · ${step.workSeconds}s" else "${step.workSeconds}s work",
+                    onClick = { onExerciseClick(step.exercise.id) }
                 )
             }
         }
@@ -150,7 +154,7 @@ private fun WorkoutHeader(workout: Workout, accent: Color) {
 }
 
 @Composable
-private fun ExerciseRow(index: Int, exercise: Exercise, onClick: () -> Unit) {
+private fun ExerciseRow(index: Int, exercise: Exercise, dosage: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,7 +184,7 @@ private fun ExerciseRow(index: Int, exercise: Exercise, onClick: () -> Unit) {
                 Text(exercise.name, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    if (exercise.dosage.isNotBlank()) exercise.dosage else exercise.targetMuscles.joinToString(", "),
+                    dosage,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -32,7 +32,7 @@ object WorkoutScheduleSeed {
         estimatedMinutes = 25,
         exercises = listOf(
             Ex.jumpingJacks, Ex.highKnees, Ex.burpees, Ex.mountainClimbers,
-            Ex.jumpSquats, Ex.skaters, Ex.plankJacks
+            Ex.jumpSquats, Ex.skaters, Ex.plankJacks, Ex.squatThrust, Ex.tuckJump
         )
     )
 
@@ -47,7 +47,7 @@ object WorkoutScheduleSeed {
         estimatedMinutes = 22,
         exercises = listOf(
             Ex.jumpingJacks, Ex.highKnees, Ex.buttKicks, Ex.skaters,
-            Ex.mountainClimbers, Ex.jumpSquats
+            Ex.mountainClimbers, Ex.jumpSquats, Ex.fastFeet, Ex.shadowBoxing
         )
     )
 
@@ -61,7 +61,7 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 30,
         exercises = listOf(
-            Ex.pushUp, Ex.pikePushUp, Ex.tricepDip, Ex.supermanRaise, Ex.plank
+            Ex.pushUp, Ex.pikePushUp, Ex.diamondPushUp, Ex.tricepDip, Ex.supermanRaise, Ex.plank
         )
     )
 
@@ -75,8 +75,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 30,
         exercises = listOf(
-            Ex.squat, Ex.reverseLunge, Ex.gluteBridge, Ex.singleLegDeadlift,
-            Ex.wallSit, Ex.calfRaise
+            Ex.squat, Ex.reverseLunge, Ex.bulgarianSplitSquat, Ex.stepUp, Ex.gluteBridge,
+            Ex.singleLegDeadlift, Ex.wallSit, Ex.calfRaise
         )
     )
 
@@ -90,8 +90,9 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.BEGINNER,
         estimatedMinutes = 20,
         exercises = listOf(
-            Ex.plank, Ex.bicycleCrunch, Ex.deadBug, Ex.legRaise,
-            Ex.russianTwist, Ex.hollowHold, Ex.flutterKicks, Ex.sidePlank
+            Ex.plank, Ex.bicycleCrunch, Ex.deadBug, Ex.legRaise, Ex.vUp, Ex.reverseCrunch,
+            Ex.russianTwist, Ex.hollowHold, Ex.flutterKicks, Ex.sidePlank,
+            Ex.plankShoulderTap, Ex.birdDog
         )
     )
 
@@ -106,7 +107,7 @@ object WorkoutScheduleSeed {
         estimatedMinutes = 30,
         exercises = listOf(
             Ex.burpees, Ex.squat, Ex.pushUp, Ex.mountainClimbers,
-            Ex.reverseLunge, Ex.plankJacks, Ex.jumpSquats
+            Ex.reverseLunge, Ex.plankJacks, Ex.jumpSquats, Ex.squatThrust, Ex.vUp
         )
     )
 
@@ -120,8 +121,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.BEGINNER,
         estimatedMinutes = 15,
         exercises = listOf(
-            Ex.marchInPlace, Ex.catCow, Ex.childPose, Ex.downwardDog,
-            Ex.worldsGreatest, Ex.hamstringStretch, Ex.chestOpener
+            Ex.marchInPlace, Ex.armCircles, Ex.catCow, Ex.childPose, Ex.cobraStretch,
+            Ex.downwardDog, Ex.worldsGreatest, Ex.lungeWithTwist, Ex.hamstringStretch, Ex.chestOpener
         )
     )
 
@@ -180,7 +181,7 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 50,
         exercises = listOf(
-            Gym.benchPress, Gym.overheadPress, Gym.inclineDbPress,
+            Gym.benchPress, Gym.overheadPress, Gym.inclineDbPress, Gym.arnoldPress,
             Gym.lateralRaise, Gym.tricepPushdown
         )
     )
@@ -194,7 +195,7 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 50,
         exercises = listOf(
-            Gym.pullUp, Gym.bentOverRow, Gym.latPulldown, Gym.seatedRow, Gym.barbellCurl
+            Gym.pullUp, Gym.bentOverRow, Gym.latPulldown, Gym.seatedRow, Gym.facePull, Gym.barbellCurl
         )
     )
 
@@ -207,7 +208,7 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 55,
         exercises = listOf(
-            Gym.barbellSquat, Gym.romanianDeadlift, Gym.legPress,
+            Gym.barbellSquat, Gym.gobletSquat, Gym.romanianDeadlift, Gym.legPress,
             Gym.legCurl, Gym.legExtension, Ex.calfRaise
         )
     )
@@ -226,7 +227,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 45,
         exercises = listOf(
-            Gym.benchPress, Gym.inclineDbPress, Gym.chestFly, Ex.pushUp, Ex.tricepDip
+            Gym.benchPress, Gym.inclineDbPress, Gym.declineBenchPress, Gym.chestFly,
+            Gym.cableFly, Ex.pushUp, Ex.tricepDip
         )
     )
 
@@ -239,7 +241,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 50,
         exercises = listOf(
-            Gym.pullUp, Gym.bentOverRow, Gym.latPulldown, Gym.seatedRow, Gym.deadlift
+            Gym.pullUp, Gym.bentOverRow, Gym.tBarRow, Gym.latPulldown, Gym.seatedRow,
+            Gym.facePull, Gym.deadlift
         )
     )
 
@@ -252,7 +255,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 45,
         exercises = listOf(
-            Gym.overheadPress, Gym.lateralRaise, Gym.frontRaise, Gym.rearDeltFly, Gym.shrug
+            Gym.overheadPress, Gym.arnoldPress, Gym.lateralRaise, Gym.frontRaise,
+            Gym.rearDeltFly, Gym.facePull, Gym.shrug
         )
     )
 
@@ -266,7 +270,8 @@ object WorkoutScheduleSeed {
         difficulty = Difficulty.INTERMEDIATE,
         estimatedMinutes = 40,
         exercises = listOf(
-            Gym.barbellCurl, Gym.hammerCurl, Gym.tricepPushdown, Gym.overheadTricepExt, Ex.tricepDip
+            Gym.barbellCurl, Gym.hammerCurl, Gym.tricepPushdown, Gym.overheadTricepExt,
+            Gym.skullCrusher, Ex.tricepDip
         )
     )
 

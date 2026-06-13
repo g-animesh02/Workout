@@ -14,15 +14,15 @@ object GymExerciseLibrary {
     val all: List<Exercise> by lazy {
         listOf(
             // Chest
-            benchPress, inclineDbPress, chestFly,
+            benchPress, inclineDbPress, chestFly, declineBenchPress, cableFly,
             // Back
-            pullUp, bentOverRow, latPulldown, seatedRow, deadlift,
+            pullUp, bentOverRow, latPulldown, seatedRow, deadlift, facePull, tBarRow,
             // Shoulders
-            overheadPress, lateralRaise, frontRaise, rearDeltFly, shrug,
+            overheadPress, lateralRaise, frontRaise, rearDeltFly, shrug, arnoldPress,
             // Arms
-            barbellCurl, hammerCurl, tricepPushdown, overheadTricepExt,
+            barbellCurl, hammerCurl, tricepPushdown, overheadTricepExt, skullCrusher,
             // Legs
-            barbellSquat, romanianDeadlift, legPress, legCurl, legExtension
+            barbellSquat, romanianDeadlift, legPress, legCurl, legExtension, gobletSquat
         )
     }
 
@@ -474,5 +474,147 @@ object GymExerciseLibrary {
         reps = "12–15 reps",
         restSeconds = 60,
         tips = listOf("Don't swing the weight — move with control.", "Pause at the top for a stronger contraction.")
+    )
+
+    // ----------------------------- Additional -----------------------------
+
+    val declineBenchPress = Exercise(
+        id = "decline_bench_press",
+        name = "Decline Bench Press",
+        category = WorkoutType.STRENGTH,
+        description = "A press on a decline bench that emphasises the lower chest.",
+        instructions = listOf(
+            "Lie on a decline bench and secure your legs.",
+            "Grip the bar slightly wider than shoulder-width and unrack it.",
+            "Lower the bar under control to your lower chest.",
+            "Press it back up to straight arms.",
+            "Keep your core braced throughout."
+        ),
+        targetMuscles = listOf("Lower chest", "Triceps", "Front shoulders"),
+        equipment = "Barbell + decline bench",
+        sets = 3,
+        reps = "8–12 reps",
+        restSeconds = 90,
+        tips = listOf("Use a spotter for heavy sets.", "Control the bar down to your chest.")
+    )
+
+    val cableFly = Exercise(
+        id = "cable_fly",
+        name = "Cable Chest Fly",
+        category = WorkoutType.STRENGTH,
+        description = "A cable isolation move that keeps constant tension on the chest through the full arc.",
+        instructions = listOf(
+            "Stand between two cable stacks set at shoulder height, a handle in each hand.",
+            "Step forward with a slight forward lean and a soft elbow bend.",
+            "Open your arms wide to feel a stretch across your chest.",
+            "Bring the handles together in front of your chest, squeezing.",
+            "Return with control, keeping the elbow bend fixed."
+        ),
+        targetMuscles = listOf("Chest"),
+        equipment = "Cable machine",
+        sets = 3,
+        reps = "12–15 reps",
+        restSeconds = 60,
+        tips = listOf("Keep tension the whole rep.", "Don't turn it into a press.")
+    )
+
+    val facePull = Exercise(
+        id = "face_pull",
+        name = "Face Pull",
+        category = WorkoutType.STRENGTH,
+        description = "A cable pull to the face that builds the rear delts and upper back for healthy shoulders.",
+        instructions = listOf(
+            "Set a rope on a cable at upper-chest height.",
+            "Grip the rope with both hands, palms facing in.",
+            "Step back and pull the rope toward your face, elbows high.",
+            "Separate the rope ends near your ears and squeeze your rear delts.",
+            "Return with control."
+        ),
+        targetMuscles = listOf("Rear shoulders", "Upper back", "Traps"),
+        equipment = "Cable machine",
+        sets = 3,
+        reps = "12–15 reps",
+        restSeconds = 60,
+        tips = listOf("Keep your elbows high throughout.", "Use light weight and good form.")
+    )
+
+    val tBarRow = Exercise(
+        id = "t_bar_row",
+        name = "T-Bar Row",
+        category = WorkoutType.STRENGTH,
+        description = "A heavy horizontal row that builds thickness through the mid-back.",
+        instructions = listOf(
+            "Straddle the bar and hinge forward with a flat back.",
+            "Grip the handles and let the weight hang at arm's length.",
+            "Pull the weight toward your stomach, driving your elbows back.",
+            "Squeeze your shoulder blades together at the top.",
+            "Lower under control."
+        ),
+        targetMuscles = listOf("Mid back", "Lats", "Biceps"),
+        equipment = "T-bar / landmine",
+        sets = 3,
+        reps = "8–12 reps",
+        restSeconds = 90,
+        tips = listOf("Keep your back flat, not rounded.", "Avoid jerking the weight up.")
+    )
+
+    val arnoldPress = Exercise(
+        id = "arnold_press",
+        name = "Arnold Press",
+        category = WorkoutType.STRENGTH,
+        description = "A rotating dumbbell overhead press that hits all three heads of the shoulder.",
+        instructions = listOf(
+            "Sit or stand holding dumbbells in front of your shoulders, palms facing you.",
+            "Press the dumbbells up while rotating your palms to face forward.",
+            "Reach full extension overhead.",
+            "Reverse the motion, rotating your palms back toward you as you lower.",
+            "Keep your core braced throughout."
+        ),
+        targetMuscles = listOf("Shoulders", "Triceps"),
+        equipment = "Dumbbells",
+        sets = 3,
+        reps = "8–12 reps",
+        restSeconds = 75,
+        tips = listOf("Rotate smoothly, don't rush.", "Don't arch your lower back.")
+    )
+
+    val skullCrusher = Exercise(
+        id = "skull_crusher",
+        name = "Skull Crusher",
+        category = WorkoutType.STRENGTH,
+        description = "A lying triceps extension that isolates and builds the triceps.",
+        instructions = listOf(
+            "Lie on a bench holding a barbell or dumbbells with straight arms over your chest.",
+            "Keep your upper arms vertical and still.",
+            "Bend your elbows to lower the weight toward your forehead.",
+            "Stop just above your head, then extend back to the top.",
+            "Move only at the elbows."
+        ),
+        targetMuscles = listOf("Triceps"),
+        equipment = "Barbell or dumbbells + bench",
+        sets = 3,
+        reps = "10–12 reps",
+        restSeconds = 60,
+        tips = listOf("Keep your elbows from flaring out.", "Lower under control to protect your elbows.")
+    )
+
+    val gobletSquat = Exercise(
+        id = "goblet_squat",
+        name = "Goblet Squat",
+        category = WorkoutType.STRENGTH,
+        description = "A squat holding a single dumbbell at the chest — great for form and leg strength.",
+        instructions = listOf(
+            "Hold a dumbbell vertically against your chest with both hands.",
+            "Stand with feet shoulder-width apart, toes slightly out.",
+            "Push your hips back and squat down, keeping your chest up.",
+            "Lower until your thighs are at least parallel.",
+            "Drive through your whole foot to stand back up."
+        ),
+        targetMuscles = listOf("Quads", "Glutes", "Core"),
+        equipment = "Dumbbell or kettlebell",
+        sets = 3,
+        reps = "10–15 reps",
+        restSeconds = 60,
+        tips = listOf("Keep your elbows inside your knees at the bottom.", "Keep your heels down.")
     )
 }
