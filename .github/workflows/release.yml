@@ -1,9 +1,12 @@
 name: Release APK
 
 on:
-  push:
-    tags: [ "v*" ]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g. v1.0)"
+        required: true
+        default: "v1.0"
 
 permissions:
   contents: write
@@ -33,16 +36,17 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/fittrack-${{ github.ref_name }}-debug.apk
+          cp app/build/outputs/apk/debug/app-debug.apk "out/fittrack-${{ inputs.version }}-debug.apk"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: FitTrack ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          name: FitTrack ${{ inputs.version }}
+          tag_name: ${{ inputs.version }}
+          target_commitish: ${{ github.sha }}
           body: |
             FitTrack debug build — install on Android 8.0+ (enable "install unknown apps").
 
             This is a debug-signed APK for testing. 100% free & offline.
-          files: out/fittrack-${{ github.ref_name }}-debug.apk
+          files: out/fittrack-${{ inputs.version }}-debug.apk
           fail_on_unmatched_files: true
