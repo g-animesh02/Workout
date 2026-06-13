@@ -21,7 +21,7 @@ object ExerciseLibrary {
             jogInPlace, marchInPlace,
             childPose, catCow, downwardDog, worldsGreatest, hamstringStretch,
             chestOpener
-        )
+        ) + GymExerciseLibrary.all
     }
 
     private fun byId(id: String): Exercise =

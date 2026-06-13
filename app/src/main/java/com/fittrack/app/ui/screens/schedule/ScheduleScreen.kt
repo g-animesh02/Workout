@@ -2,6 +2,7 @@ package com.fittrack.app.ui.screens.schedule
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,49 +16,79 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fittrack.app.data.model.WeeklyProgram
 import com.fittrack.app.data.model.WorkoutDay
-import com.fittrack.app.data.seed.WorkoutScheduleSeed
+import com.fittrack.app.data.model.WorkoutType
 import com.fittrack.app.ui.IconBadge
 import com.fittrack.app.ui.Pill
 import com.fittrack.app.ui.color
 import com.fittrack.app.ui.icon
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-/** Weekly training schedule — the app's home screen. */
+/** Weekly training schedule — the app's home screen with a program selector. */
 @Composable
 fun ScheduleScreen(
+    viewModel: ScheduleViewModel,
     onWorkoutClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val state by viewModel.uiState.collectAsState()
     val today = LocalDate.now().dayOfWeek
-    val plan = WorkoutScheduleSeed.weeklyPlan
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { ScheduleHeader(today) }
-        items(plan, key = { it.dayOfWeek.name }) { day ->
+        item {
+            Column {
+                Text("Your Week", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    "Pick a program and follow its weekly plan",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        item {
+            ProgramSelector(
+                programs = state.programs,
+                selectedId = state.selected.id,
+                onSelect = viewModel::selectProgram
+            )
+        }
+        item { ProgramSummary(state.selected) }
+        item { TodayHighlight(state.selected.dayFor(today)) }
+        item {
+            Text(
+                "Weekly schedule",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+        items(state.selected.days, key = { it.dayOfWeek.name }) { day ->
             DayCard(
                 day = day,
                 isToday = day.dayOfWeek == today,
@@ -70,24 +101,78 @@ fun ScheduleScreen(
 }
 
 @Composable
-private fun ScheduleHeader(today: DayOfWeek) {
-    val todayDay = WorkoutScheduleSeed.dayFor(today)
-    Column {
-        Text("Your Week", style = MaterialTheme.typography.headlineMedium)
-        Text(
-            "A balanced default plan — HIIT, strength, core & recovery",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(14.dp))
-        TodayHighlight(todayDay)
-        Spacer(Modifier.height(6.dp))
+private fun ProgramSelector(
+    programs: List<WeeklyProgram>,
+    selectedId: String,
+    onSelect: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        programs.forEach { program ->
+            val selected = program.id == selectedId
+            val accent = program.accent.color()
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selected) accent.copy(alpha = 0.18f)
+                    else MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.clickable { onSelect(program.id) }
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (selected) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = accent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text(
+                        program.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (selected) accent else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgramSummary(program: WeeklyProgram) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(program.name, style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.width(8.dp))
+                Pill(text = "${program.trainingDays} days/week", color = program.accent.color())
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                program.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 @Composable
 private fun TodayHighlight(day: WorkoutDay) {
-    val type = day.workout?.type ?: com.fittrack.app.data.model.WorkoutType.REST
+    val type = day.workout?.type ?: WorkoutType.REST
     val accent = type.color()
     Card(
         colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.12f)),
@@ -106,10 +191,7 @@ private fun TodayHighlight(day: WorkoutDay) {
                     color = accent,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    day.workout?.name ?: "Rest Day",
-                    style = MaterialTheme.typography.titleLarge
-                )
+                Text(day.workout?.name ?: "Rest Day", style = MaterialTheme.typography.titleLarge)
                 Text(
                     day.workout?.focus ?: "Take it easy and recover",
                     style = MaterialTheme.typography.bodyMedium,
@@ -122,7 +204,7 @@ private fun TodayHighlight(day: WorkoutDay) {
 
 @Composable
 private fun DayCard(day: WorkoutDay, isToday: Boolean, onClick: () -> Unit) {
-    val type = day.workout?.type ?: com.fittrack.app.data.model.WorkoutType.REST
+    val type = day.workout?.type ?: WorkoutType.REST
     val accent = type.color()
     val dayLabel = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 

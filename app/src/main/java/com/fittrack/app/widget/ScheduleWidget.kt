@@ -39,8 +39,10 @@ import java.util.Locale
 class ScheduleWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val app = context.applicationContext as com.fittrack.app.FitTrackApp
         val today = LocalDate.now()
-        val day = WorkoutScheduleSeed.dayFor(today.dayOfWeek)
+        val program = WorkoutScheduleSeed.programById(app.settingsRepository.selectedProgramIdOnce())
+        val day = program.dayFor(today.dayOfWeek)
         val dayName = today.dayOfWeek.getDisplayName(JavaTextStyle.FULL, Locale.getDefault())
         val title = day.workout?.name ?: "Rest Day"
         val subtitle = day.workout?.let { "${it.exercises.size} exercises · ${it.estimatedMinutes} min" }
@@ -48,13 +50,13 @@ class ScheduleWidget : GlanceAppWidget() {
 
         provideContent {
             GlanceTheme {
-                Content(dayName = dayName, title = title, subtitle = subtitle)
+                Content(program = program.name, dayName = dayName, title = title, subtitle = subtitle)
             }
         }
     }
 
     @Composable
-    private fun Content(dayName: String, title: String, subtitle: String) {
+    private fun Content(program: String, dayName: String, title: String, subtitle: String) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -65,7 +67,7 @@ class ScheduleWidget : GlanceAppWidget() {
             verticalAlignment = Alignment.Top
         ) {
             Text(
-                text = "$dayName · Today",
+                text = "$dayName · $program",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFFF97316)),
                     fontSize = 12.sp,

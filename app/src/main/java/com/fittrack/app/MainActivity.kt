@@ -33,6 +33,7 @@ import com.fittrack.app.ui.screens.exercise.ExerciseDetailScreen
 import com.fittrack.app.ui.screens.food.FoodScreen
 import com.fittrack.app.ui.screens.food.FoodViewModel
 import com.fittrack.app.ui.screens.schedule.ScheduleScreen
+import com.fittrack.app.ui.screens.schedule.ScheduleViewModel
 import com.fittrack.app.ui.screens.workout.WorkoutDetailScreen
 import com.fittrack.app.ui.theme.FitTrackTheme
 import com.fittrack.app.widget.WidgetUpdater
@@ -72,6 +73,12 @@ private fun FitTrackAppRoot(startDestination: String) {
     val foodViewModel: FoodViewModel = viewModel(
         factory = FoodViewModel.Factory(
             foodRepository = app.foodRepository,
+            settingsRepository = app.settingsRepository,
+            widgetUpdater = WidgetUpdater(app)
+        )
+    )
+    val scheduleViewModel: ScheduleViewModel = viewModel(
+        factory = ScheduleViewModel.Factory(
             settingsRepository = app.settingsRepository,
             widgetUpdater = WidgetUpdater(app)
         )
@@ -120,6 +127,7 @@ private fun FitTrackAppRoot(startDestination: String) {
         ) {
             composable(Routes.SCHEDULE) {
                 ScheduleScreen(
+                    viewModel = scheduleViewModel,
                     onWorkoutClick = { workoutId ->
                         navController.navigate(Routes.workoutDetail(workoutId))
                     }

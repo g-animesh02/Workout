@@ -6,18 +6,18 @@ ad-free** — no account, no subscriptions, no network calls, no paid APIs.
 
 ## Features
 
-### 🗓️ Weekly training schedule
-A balanced default plan, ready to use out of the box:
+### 🗓️ Weekly training programs
+Pick a ready-made program from the schedule screen and follow its full
+Monday–Sunday plan. Your choice is saved and also drives the home-screen widget:
 
-| Day | Workout | Focus |
-|-----|---------|-------|
-| Monday | **HIIT Blast** | Fat burn · conditioning |
-| Tuesday | **Upper Body Strength** | Chest · shoulders · arms |
-| Wednesday | **Lower Body Strength** | Quads · glutes · hamstrings |
-| Thursday | **Core & Abs** | Abs · obliques · stability |
-| Friday | **Full Body Burn** | Strength + cardio finisher |
-| Saturday | **Mobility & Stretch** | Recovery · flexibility |
-| Sunday | **Rest Day** | Active recovery |
+| Program | Style | Example week |
+|---------|-------|--------------|
+| **Balanced** | A bit of everything | HIIT · Upper · Lower · Core · Full Body · Mobility · Rest |
+| **HIIT Shred** | High-intensity fat burn | HIIT · Core · Cardio · Mobility · HIIT · Full Body · Rest |
+| **Strength (PPL)** | Push / Pull / Legs | Push · Pull · Legs · Rest · Push · Pull · Rest |
+| **Gym Muscle Split** | One muscle group per day | Chest · Back · Shoulders · Arms · Legs · Core · Rest |
+
+Switch programs anytime with the selector at the top of the schedule.
 
 ### 💪 Exercise guides
 Every exercise includes:
@@ -26,8 +26,9 @@ Every exercise includes:
 - **Form tips** — cues and easier/harder scaling options.
 - **Target muscles** and recommended sets/reps or work/rest timing.
 
-35+ bodyweight exercises across HIIT, strength, core, cardio and mobility — no
-equipment required.
+55+ exercises: bodyweight moves for HIIT, core, cardio and mobility (no equipment)
+plus gym lifts (barbell, dumbbell, cable, machine) for the strength and
+single-muscle split programs.
 
 ### 🍎 Food & calorie tracking
 - Log meals with calories and optional protein / carbs / fat macros.

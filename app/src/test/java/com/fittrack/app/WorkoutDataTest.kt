@@ -43,4 +43,28 @@ class WorkoutDataTest {
             assertEquals(workout, WorkoutScheduleSeed.workoutById(workout.id))
         }
     }
+
+    @Test
+    fun everyProgramCoversEveryDayAndHasTraining() {
+        assertTrue("There should be multiple programs", WorkoutScheduleSeed.programs.size >= 2)
+        WorkoutScheduleSeed.programs.forEach { program ->
+            val days = program.days.map { it.dayOfWeek }.toSet()
+            assertEquals("${program.name} must cover all 7 days", DayOfWeek.entries.toSet(), days)
+            assertTrue("${program.name} must have at least one training day", program.trainingDays > 0)
+        }
+    }
+
+    @Test
+    fun everyProgramWorkoutResolvesAndHasContent() {
+        WorkoutScheduleSeed.programs.flatMap { it.days }.mapNotNull { it.workout }.forEach { workout ->
+            assertEquals(workout, WorkoutScheduleSeed.workoutById(workout.id))
+            assertTrue("${workout.name} must have exercises", workout.exercises.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun defaultProgramIdResolves() {
+        val program = WorkoutScheduleSeed.programById(WorkoutScheduleSeed.DEFAULT_PROGRAM_ID)
+        assertEquals(WorkoutScheduleSeed.DEFAULT_PROGRAM_ID, program.id)
+    }
 }

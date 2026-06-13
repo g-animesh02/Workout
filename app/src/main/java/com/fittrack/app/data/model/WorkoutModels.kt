@@ -58,11 +58,29 @@ data class Workout(
     val exercises: List<Exercise>
 )
 
-/** One day in the default weekly schedule. A rest day has a null [workout]. */
+/** One day in a weekly schedule. A rest day has a null [workout]. */
 data class WorkoutDay(
     val dayOfWeek: java.time.DayOfWeek,
     val title: String,
     val workout: Workout?
 ) {
     val isRest: Boolean get() = workout == null
+}
+
+/**
+ * A selectable, ready-made weekly training program (e.g. HIIT, strength split,
+ * single-muscle gym split). Each program defines a full Monday–Sunday schedule.
+ */
+data class WeeklyProgram(
+    val id: String,
+    val name: String,
+    val tagline: String,
+    val description: String,
+    val accent: WorkoutType,
+    val days: List<WorkoutDay>
+) {
+    fun dayFor(dayOfWeek: java.time.DayOfWeek): WorkoutDay =
+        days.first { it.dayOfWeek == dayOfWeek }
+
+    val trainingDays: Int get() = days.count { !it.isRest }
 }
