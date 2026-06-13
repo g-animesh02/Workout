@@ -62,6 +62,9 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { prefs -> prefs[levelKey] = level.name }
     }
 
+    suspend fun selectedLevelOnce(): Difficulty =
+        runCatching { selectedLevel.first() }.getOrDefault(Difficulty.INTERMEDIATE)
+
     // --- Custom weekly schedule ---
 
     /** Map of each weekday to a workout id, or null for a rest day. */

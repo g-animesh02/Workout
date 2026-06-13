@@ -188,7 +188,13 @@ private fun FitTrackAppRoot(startDestination: String) {
                         level = scheduleState.level,
                         onExit = { navController.popBackStack() },
                         onCompleted = {
-                            scope.launch { app.historyRepository.logWorkout(workout) }
+                            scope.launch {
+                                app.historyRepository.logWorkout(
+                                    workout,
+                                    durationMinutes = com.fittrack.app.data.seed.LevelScaling
+                                        .targetMinutes(scheduleState.level)
+                                )
+                            }
                         }
                     )
                 }

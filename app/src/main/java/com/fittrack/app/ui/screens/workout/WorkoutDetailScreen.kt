@@ -81,7 +81,7 @@ fun WorkoutDetailScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item { WorkoutHeader(workout, accent) }
+            item { WorkoutHeader(workout, level, accent) }
             item {
                 androidx.compose.material3.Button(
                     onClick = onStart,
@@ -106,7 +106,7 @@ fun WorkoutDetailScreen(
             }
             item {
                 Text(
-                    "Exercises (${steps.size}) · ${level.label}",
+                    "Exercises (${steps.size}) · ${level.label} · ~${com.fittrack.app.data.seed.LevelScaling.planMinutes(steps)} min",
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -123,7 +123,7 @@ fun WorkoutDetailScreen(
 }
 
 @Composable
-private fun WorkoutHeader(workout: Workout, accent: Color) {
+private fun WorkoutHeader(workout: Workout, level: com.fittrack.app.data.model.Difficulty, accent: Color) {
     Card(
         colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.12f)),
         modifier = Modifier.fillMaxWidth()
@@ -144,8 +144,11 @@ private fun WorkoutHeader(workout: Workout, accent: Color) {
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Pill(text = workout.type.label, color = accent, leadingIcon = workout.type.icon())
-                Pill(text = workout.difficulty.label, color = MaterialTheme.colorScheme.secondary)
-                Pill(text = "${workout.estimatedMinutes} min", color = MaterialTheme.colorScheme.primary)
+                Pill(text = level.label, color = MaterialTheme.colorScheme.secondary)
+                Pill(
+                    text = "${com.fittrack.app.data.seed.LevelScaling.targetMinutes(level)} min",
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
             Spacer(Modifier.height(12.dp))
             Text(workout.description, style = MaterialTheme.typography.bodyLarge)

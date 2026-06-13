@@ -18,14 +18,18 @@ class HistoryRepository(
     private val foodDao: FoodDao
 ) {
 
-    suspend fun logWorkout(workout: Workout, date: LocalDate = LocalDate.now()) {
+    suspend fun logWorkout(
+        workout: Workout,
+        durationMinutes: Int = workout.estimatedMinutes,
+        date: LocalDate = LocalDate.now()
+    ) {
         workoutLogDao.insert(
             WorkoutLog(
                 epochDay = date.toEpochDay(),
                 workoutId = workout.id,
                 workoutName = workout.name,
                 type = workout.type.label,
-                durationMinutes = workout.estimatedMinutes
+                durationMinutes = durationMinutes
             )
         )
     }

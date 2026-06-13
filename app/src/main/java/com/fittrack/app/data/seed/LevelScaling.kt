@@ -2,7 +2,6 @@ package com.fittrack.app.data.seed
 
 import com.fittrack.app.data.model.Difficulty
 import com.fittrack.app.data.model.Exercise
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -17,15 +16,22 @@ data class WorkoutStep(
 
 /**
  * Scales a workout by difficulty level. Higher levels mean longer work time per
- * exercise, more reps, and more exercises in the session (rather than simply
- * repeating the circuit for more rounds).
+ * exercise, more reps, and more exercises so the whole session fills a target
+ * duration: ~20 min (Beginner), ~35 min (Intermediate), ~50 min (Advanced).
  */
 object LevelScaling {
+
+    /** Target total session length in minutes for a level. */
+    fun targetMinutes(level: Difficulty): Int = when (level) {
+        Difficulty.BEGINNER -> 20
+        Difficulty.INTERMEDIATE -> 35
+        Difficulty.ADVANCED -> 50
+    }
 
     fun workSeconds(base: Int?, level: Difficulty): Int {
         val b = base ?: 40
         val factor = when (level) {
-            Difficulty.BEGINNER -> 0.75
+            Difficulty.BEGINNER -> 0.8
             Difficulty.INTERMEDIATE -> 1.0
             Difficulty.ADVANCED -> 1.3
         }
@@ -47,7 +53,7 @@ object LevelScaling {
         val factor = when (level) {
             Difficulty.BEGINNER -> 0.7
             Difficulty.INTERMEDIATE -> 1.0
-            Difficulty.ADVANCED -> 1.3
+            Difficulty.ADVANCED -> 1.4
         }
         val target = max(5, (base * factor).roundToInt())
         return if (reps.contains("per", ignoreCase = true)) "$target reps per side" else "$target reps"
@@ -55,20 +61,19 @@ object LevelScaling {
 
     /** Short description of how this level changes the workout. */
     fun summary(level: Difficulty): String = when (level) {
-        Difficulty.BEGINNER -> "shorter time · fewer reps & exercises"
-        Difficulty.INTERMEDIATE -> "standard time, reps & exercises"
-        Difficulty.ADVANCED -> "longer time · more reps & exercises"
+        Difficulty.BEGINNER -> "~20 min · lighter pace, fewer reps"
+        Difficulty.INTERMEDIATE -> "~35 min · standard pace & reps"
+        Difficulty.ADVANCED -> "~50 min · longer, more reps & exercises"
     }
 
-    /** Build the ordered, level-scaled session steps for a workout. */
+    /**
+     * Build the level-scaled session: cycles through the (scaled) exercises until
+     * the target duration is reached, so the number of exercises and total time
+     * both grow with the level.
+     */
     fun plan(exercises: List<Exercise>, level: Difficulty): List<WorkoutStep> {
         if (exercises.isEmpty()) return emptyList()
-        val selected: List<Exercise> = when (level) {
-            Difficulty.BEGINNER -> exercises.take(max(3, ceil(exercises.size * 0.7).toInt()))
-            Difficulty.INTERMEDIATE -> exercises
-            Difficulty.ADVANCED -> exercises + exercises.take(max(2, ceil(exercises.size * 0.5).toInt()))
-        }
-        return selected.map { ex ->
+        val scaled = exercises.map { ex ->
             WorkoutStep(
                 exercise = ex,
                 workSeconds = workSeconds(ex.workSeconds, level),
@@ -76,5 +81,20 @@ object LevelScaling {
                 restSeconds = restSeconds(ex.restSeconds, level)
             )
         }
+        val targetSeconds = targetMinutes(level) * 60
+        val result = ArrayList<WorkoutStep>()
+        var total = 0
+        var i = 0
+        while (total < targetSeconds && result.size < 80) {
+            val step = scaled[i % scaled.size]
+            result.add(step)
+            total += step.workSeconds + step.restSeconds
+            i++
+        }
+        return result
     }
+
+    /** Total minutes a plan will take. */
+    fun planMinutes(steps: List<WorkoutStep>): Int =
+        max(1, (steps.sumOf { it.workSeconds + it.restSeconds } / 60.0).roundToInt())
 }

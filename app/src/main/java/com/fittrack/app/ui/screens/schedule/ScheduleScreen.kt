@@ -95,6 +95,7 @@ fun ScheduleScreen(
                 program = state.selected,
                 today = today,
                 isCustom = state.isCustom,
+                level = state.level,
                 onDayClick = { day ->
                     if (state.isCustom) editingDay = day.dayOfWeek
                     else day.workout?.let { onWorkoutClick(it.id) }
@@ -245,6 +246,7 @@ private fun WeekList(
     program: WeeklyProgram,
     today: DayOfWeek,
     isCustom: Boolean,
+    level: Difficulty,
     onDayClick: (WorkoutDay) -> Unit
 ) {
     Surface(
@@ -255,7 +257,7 @@ private fun WeekList(
     ) {
         Column {
             program.days.forEachIndexed { index, day ->
-                DayRow(day, day.dayOfWeek == today, isCustom, onClick = { onDayClick(day) })
+                DayRow(day, day.dayOfWeek == today, isCustom, level, onClick = { onDayClick(day) })
                 if (index < program.days.lastIndex) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
@@ -265,7 +267,7 @@ private fun WeekList(
 }
 
 @Composable
-private fun DayRow(day: WorkoutDay, isToday: Boolean, isCustom: Boolean, onClick: () -> Unit) {
+private fun DayRow(day: WorkoutDay, isToday: Boolean, isCustom: Boolean, level: Difficulty, onClick: () -> Unit) {
     val accent = (day.workout?.type ?: WorkoutType.REST).color()
     val dayLabel = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
     Row(
@@ -292,7 +294,7 @@ private fun DayRow(day: WorkoutDay, isToday: Boolean, isCustom: Boolean, onClick
         Column(Modifier.weight(1f)) {
             Text(day.title, style = MaterialTheme.typography.titleMedium)
             Text(
-                if (day.workout != null) "${day.workout.type.label} · ${day.workout.estimatedMinutes} min"
+                if (day.workout != null) "${day.workout.type.label} · ${LevelScaling.targetMinutes(level)} min"
                 else "Rest day",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

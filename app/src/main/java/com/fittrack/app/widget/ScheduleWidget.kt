@@ -42,11 +42,13 @@ class ScheduleWidget : GlanceAppWidget() {
         val app = context.applicationContext as com.fittrack.app.FitTrackApp
         val today = LocalDate.now()
         val program = WorkoutScheduleSeed.programById(app.settingsRepository.selectedProgramIdOnce())
+        val level = app.settingsRepository.selectedLevelOnce()
         val day = program.dayFor(today.dayOfWeek)
         val dayName = today.dayOfWeek.getDisplayName(JavaTextStyle.FULL, Locale.getDefault())
         val title = day.workout?.name ?: "Rest Day"
-        val subtitle = day.workout?.let { "${it.exercises.size} exercises · ${it.estimatedMinutes} min" }
-            ?: "Recover and recharge"
+        val subtitle = day.workout?.let {
+            "${level.label} · ${com.fittrack.app.data.seed.LevelScaling.targetMinutes(level)} min"
+        } ?: "Recover and recharge"
 
         provideContent {
             GlanceTheme {
