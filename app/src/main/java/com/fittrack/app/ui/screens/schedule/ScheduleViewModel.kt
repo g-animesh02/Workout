@@ -9,6 +9,7 @@ import com.fittrack.app.data.model.Workout
 import com.fittrack.app.data.model.WorkoutDay
 import com.fittrack.app.data.model.WorkoutType
 import com.fittrack.app.data.repository.SettingsRepository
+import com.fittrack.app.data.seed.ExerciseLibrary
 import com.fittrack.app.data.seed.WorkoutScheduleSeed
 import com.fittrack.app.widget.WidgetUpdater
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +32,7 @@ data class ScheduleUiState(
     val isCustom: Boolean get() = selectedId == WorkoutScheduleSeed.CUSTOM_PROGRAM_ID
 }
 
-/** Holds the chosen program, difficulty level and custom schedule. */
+/** Holds the chosen program, difficulty level, custom schedule and custom-built workouts. */
 class ScheduleViewModel(
     private val settingsRepository: SettingsRepository,
     private val widgetUpdater: WidgetUpdater
@@ -45,10 +46,11 @@ class ScheduleViewModel(
         combine(
             settingsRepository.selectedProgramId,
             settingsRepository.selectedLevel,
-            settingsRepository.customSchedule
-        ) { id, level, custom ->
+            settingsRepository.customSchedule,
+            settingsRepository.customDayWorkouts
+        ) { id, level, custom, customWorkouts ->
             val selected =
-                if (id == WorkoutScheduleSeed.CUSTOM_PROGRAM_ID) buildCustomProgram(custom)
+                if (id == WorkoutScheduleSeed.CUSTOM_PROGRAM_ID) buildCustomProgram(custom, customWorkouts)
                 else WorkoutScheduleSeed.programById(id)
             ScheduleUiState(
                 chips = chips,
@@ -60,18 +62,40 @@ class ScheduleViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScheduleUiState(chips = chips))
 
-    private fun buildCustomProgram(map: Map<DayOfWeek, String?>): WeeklyProgram {
+    private fun buildCustomProgram(
+        scheduleMap: Map<DayOfWeek, String?>,
+        workoutsMap: Map<DayOfWeek, List<String>>
+    ): WeeklyProgram {
         val days = DayOfWeek.entries.map { day ->
-            val workout = map[day]?.let { WorkoutScheduleSeed.workoutById(it) }
+            val builtIds = workoutsMap[day]
+            val workout = when {
+                !builtIds.isNullOrEmpty() -> buildCustomWorkout(day, builtIds)
+                else -> scheduleMap[day]?.let { WorkoutScheduleSeed.workoutById(it) }
+            }
             WorkoutDay(day, workout?.name ?: "Rest Day", workout)
         }
         return WeeklyProgram(
             id = WorkoutScheduleSeed.CUSTOM_PROGRAM_ID,
             name = "Custom",
             tagline = "Your own plan",
-            description = "Tap any day to choose a workout or set it as a rest day.",
+            description = "Tap any day to choose a workout, build your own mix, or set a rest day.",
             accent = WorkoutType.FULL_BODY,
             days = days
+        )
+    }
+
+    private fun buildCustomWorkout(day: DayOfWeek, ids: List<String>): Workout {
+        val exercises = ids.mapNotNull { runCatching { ExerciseLibrary.get(it) }.getOrNull() }
+        return Workout(
+            id = "custom_${day.name}",
+            name = "Custom Mix",
+            type = WorkoutType.FULL_BODY,
+            description = "Your custom-built workout. Move through each exercise and repeat for your " +
+                "suggested number of rounds.",
+            focus = exercises.map { it.category.label }.distinct().joinToString(" · "),
+            difficulty = Difficulty.INTERMEDIATE,
+            estimatedMinutes = (exercises.size * 4).coerceAtLeast(10),
+            exercises = exercises
         )
     }
 
@@ -88,7 +112,16 @@ class ScheduleViewModel(
 
     fun setCustomDay(day: DayOfWeek, workoutId: String?) {
         viewModelScope.launch {
+            // Picking a preset (or rest) clears any built-your-own workout for the day.
+            settingsRepository.setCustomDayExercises(day, emptyList())
             settingsRepository.setCustomDay(day, workoutId)
+            widgetUpdater.refreshAll()
+        }
+    }
+
+    fun setCustomDayExercises(day: DayOfWeek, exerciseIds: List<String>) {
+        viewModelScope.launch {
+            settingsRepository.setCustomDayExercises(day, exerciseIds)
             widgetUpdater.refreshAll()
         }
     }

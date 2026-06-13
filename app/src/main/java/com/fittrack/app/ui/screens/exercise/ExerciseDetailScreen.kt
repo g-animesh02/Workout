@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -77,6 +78,7 @@ fun ExerciseDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { Header(exercise, accent) }
+            item { VideoDemoButton(exercise, accent) }
             item { WhatItIs(exercise) }
             item { HowToDoIt(exercise, accent) }
             if (exercise.tips.isNotEmpty()) {
@@ -84,6 +86,25 @@ fun ExerciseDetailScreen(
             }
             item { TargetMuscles(exercise, accent) }
         }
+    }
+}
+
+@Composable
+private fun VideoDemoButton(exercise: Exercise, accent: Color) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    val query = java.net.URLEncoder.encode("how to do ${exercise.name} exercise", "UTF-8")
+    androidx.compose.material3.Button(
+        onClick = { uriHandler.openUri("https://www.youtube.com/results?search_query=$query") },
+        modifier = Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = accent)
+    ) {
+        Icon(
+            Icons.Filled.PlayArrow,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text("Watch video demo")
     }
 }
 

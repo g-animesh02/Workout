@@ -85,9 +85,9 @@ fun ScheduleScreen(
             )
         }
 
-        item { ProgramSummary(state.selected, state.rounds, state.isCustom) }
+        item { ProgramSummary(state.selected, state.level.label, state.rounds) }
 
-        item { TodayCard(state.selected.dayFor(today)) }
+        item { TodayCard(state.selected.dayFor(today), state.level.label, state.rounds) }
 
         item {
             WeekList(
@@ -105,12 +105,19 @@ fun ScheduleScreen(
 
     val day = editingDay
     if (day != null) {
+        val current = state.selected.dayFor(day).workout
+        val isBuilt = current?.id?.startsWith("custom_") == true
         CustomDayPickerDialog(
             day = day,
             workouts = state.allWorkouts,
-            currentId = state.selected.dayFor(day).workout?.id,
-            onPick = { workoutId ->
+            currentPresetId = if (isBuilt) null else current?.id,
+            currentExerciseIds = if (isBuilt) current!!.exercises.map { it.id } else emptyList(),
+            onPickPreset = { workoutId ->
                 viewModel.setCustomDay(day, workoutId)
+                editingDay = null
+            },
+            onSaveBuilt = { ids ->
+                viewModel.setCustomDayExercises(day, ids)
                 editingDay = null
             },
             onDismiss = { editingDay = null }
@@ -171,7 +178,7 @@ private fun SelectChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ProgramSummary(program: WeeklyProgram, rounds: Int, isCustom: Boolean) {
+private fun ProgramSummary(program: WeeklyProgram, levelLabel: String, rounds: Int) {
     Column {
         Text(program.tagline, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(2.dp))
@@ -180,19 +187,17 @@ private fun ProgramSummary(program: WeeklyProgram, rounds: Int, isCustom: Boolea
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        if (!isCustom) {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "${program.trainingDays} days/week · suggested $rounds rounds",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "${program.trainingDays} days/week · $levelLabel · $rounds rounds per workout",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
 @Composable
-private fun TodayCard(day: WorkoutDay) {
+private fun TodayCard(day: WorkoutDay, levelLabel: String, rounds: Int) {
     val accent = (day.workout?.type ?: WorkoutType.REST).color()
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -220,6 +225,15 @@ private fun TodayCard(day: WorkoutDay) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (day.workout != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "$levelLabel · $rounds rounds",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = accent,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

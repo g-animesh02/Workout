@@ -48,6 +48,8 @@ import com.fittrack.app.ui.icon
 @Composable
 fun WorkoutDetailScreen(
     workout: Workout,
+    rounds: Int,
+    levelLabel: String,
     onBack: () -> Unit,
     onExerciseClick: (String) -> Unit,
     onStart: () -> Unit,
@@ -89,8 +91,15 @@ fun WorkoutDetailScreen(
                         contentDescription = null
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Start workout")
+                    Text("Start workout · $rounds rounds")
                 }
+            }
+            item {
+                Text(
+                    "Level: $levelLabel — do $rounds rounds. Change your level on the schedule screen.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             item {
                 Text(

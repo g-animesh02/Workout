@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fittrack.app.data.model.Workout
 import com.fittrack.app.data.seed.ExerciseLibrary
 import com.fittrack.app.data.seed.WorkoutScheduleSeed
 import com.fittrack.app.ui.navigation.Routes
@@ -40,6 +41,7 @@ import com.fittrack.app.ui.screens.food.FoodScreen
 import com.fittrack.app.ui.screens.food.FoodViewModel
 import com.fittrack.app.ui.screens.player.WorkoutPlayerScreen
 import com.fittrack.app.ui.screens.schedule.ScheduleScreen
+import com.fittrack.app.ui.screens.schedule.ScheduleUiState
 import com.fittrack.app.ui.screens.schedule.ScheduleViewModel
 import com.fittrack.app.ui.screens.workout.WorkoutDetailScreen
 import com.fittrack.app.ui.theme.FitTrackTheme
@@ -72,6 +74,12 @@ class MainActivity : ComponentActivity() {
         const val DEST_FOOD = "food"
     }
 }
+
+/** Resolves a workout id from the current program (covers custom-built workouts
+ * that aren't in the static seed) or falls back to the seed catalog. */
+private fun resolveWorkout(id: String?, state: ScheduleUiState): Workout? =
+    state.selected.days.firstOrNull { it.workout?.id == id }?.workout
+        ?: id?.let { WorkoutScheduleSeed.workoutById(it) }
 
 @Composable
 private fun FitTrackAppRoot(startDestination: String) {
@@ -158,10 +166,12 @@ private fun FitTrackAppRoot(startDestination: String) {
             }
             composable(Routes.WORKOUT_DETAIL) { entry ->
                 val workoutId = entry.arguments?.getString(Routes.ARG_WORKOUT_ID)
-                val workout = workoutId?.let { WorkoutScheduleSeed.workoutById(it) }
+                val workout = resolveWorkout(workoutId, scheduleState)
                 if (workout != null) {
                     WorkoutDetailScreen(
                         workout = workout,
+                        rounds = scheduleState.rounds,
+                        levelLabel = scheduleState.level.label,
                         onBack = { navController.popBackStack() },
                         onExerciseClick = { exerciseId ->
                             navController.navigate(Routes.exerciseDetail(exerciseId))
@@ -172,7 +182,7 @@ private fun FitTrackAppRoot(startDestination: String) {
             }
             composable(Routes.PLAYER) { entry ->
                 val workoutId = entry.arguments?.getString(Routes.ARG_WORKOUT_ID)
-                val workout = workoutId?.let { WorkoutScheduleSeed.workoutById(it) }
+                val workout = resolveWorkout(workoutId, scheduleState)
                 if (workout != null) {
                     WorkoutPlayerScreen(
                         workout = workout,

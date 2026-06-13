@@ -24,6 +24,7 @@ class SettingsRepository(private val context: Context) {
     private val programIdKey = stringPreferencesKey("selected_program_id")
     private val levelKey = stringPreferencesKey("difficulty_level")
     private val customScheduleKey = stringPreferencesKey("custom_schedule")
+    private val customWorkoutsKey = stringPreferencesKey("custom_day_workouts")
 
     // --- Calorie goal ---
 
@@ -77,6 +78,34 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun customScheduleOnce(): Map<DayOfWeek, String?> =
         runCatching { customSchedule.first() }.getOrDefault(defaultCustomSchedule())
+
+    /** Per-day user-built workouts as ordered lists of exercise ids. Days absent
+     * here fall back to the preset workout chosen in [customSchedule]. */
+    val customDayWorkouts: Flow<Map<DayOfWeek, List<String>>> = context.dataStore.data
+        .map { prefs -> decodeWorkouts(prefs[customWorkoutsKey]) }
+
+    suspend fun setCustomDayExercises(day: DayOfWeek, exerciseIds: List<String>) {
+        context.dataStore.edit { prefs ->
+            val current = decodeWorkouts(prefs[customWorkoutsKey]).toMutableMap()
+            if (exerciseIds.isEmpty()) current.remove(day) else current[day] = exerciseIds
+            prefs[customWorkoutsKey] = encodeWorkouts(current)
+        }
+    }
+
+    private fun encodeWorkouts(map: Map<DayOfWeek, List<String>>): String =
+        map.entries.filter { it.value.isNotEmpty() }
+            .joinToString(";") { "${it.key.name}=${it.value.joinToString(",")}" }
+
+    private fun decodeWorkouts(raw: String?): Map<DayOfWeek, List<String>> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        return raw.split(";").mapNotNull { entry ->
+            val parts = entry.split("=", limit = 2)
+            if (parts.size != 2) return@mapNotNull null
+            val day = runCatching { DayOfWeek.valueOf(parts[0]) }.getOrNull() ?: return@mapNotNull null
+            val ids = parts[1].split(",").map { it.trim() }.filter { it.isNotBlank() }
+            if (ids.isEmpty()) null else day to ids
+        }.toMap()
+    }
 
     private fun encodeSchedule(map: Map<DayOfWeek, String?>): String =
         DayOfWeek.entries.joinToString(";") { day -> "${day.name}=${map[day] ?: REST}" }
