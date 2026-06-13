@@ -49,6 +49,7 @@ fun WorkoutDetailScreen(
     workout: Workout,
     onBack: () -> Unit,
     onExerciseClick: (String) -> Unit,
+    onStart: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val accent = workout.type.color()
@@ -76,6 +77,20 @@ fun WorkoutDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { WorkoutHeader(workout, accent) }
+            item {
+                androidx.compose.material3.Button(
+                    onClick = onStart,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    androidx.compose.material3.Icon(
+                        androidx.compose.material.icons.Icons.Filled.PlayArrow,
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Start workout")
+                }
+            }
             item {
                 Text(
                     "Exercises (${workout.exercises.size})",

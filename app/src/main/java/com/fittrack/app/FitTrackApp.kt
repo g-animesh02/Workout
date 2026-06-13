@@ -3,6 +3,7 @@ package com.fittrack.app
 import android.app.Application
 import com.fittrack.app.data.db.AppDatabase
 import com.fittrack.app.data.repository.FoodRepository
+import com.fittrack.app.data.repository.HistoryRepository
 import com.fittrack.app.data.repository.SettingsRepository
 
 /**
@@ -14,6 +15,9 @@ class FitTrackApp : Application() {
     val database: AppDatabase by lazy { AppDatabase.get(this) }
     val foodRepository: FoodRepository by lazy { FoodRepository(database.foodDao()) }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(this) }
+    val historyRepository: HistoryRepository by lazy {
+        HistoryRepository(database.workoutLogDao(), database.foodDao())
+    }
 
     companion object {
         lateinit var instance: FitTrackApp

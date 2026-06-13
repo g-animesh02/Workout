@@ -1,26 +1,28 @@
 package com.fittrack.app.ui.screens.food
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,10 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.fittrack.app.data.db.entity.MealType
 import com.fittrack.app.data.seed.FoodCatalog
+import com.fittrack.app.data.seed.FoodCategory
 
 /**
- * Dialog for logging food. Offers fast one-tap presets plus a custom entry form
- * with optional macros. Works fully offline.
+ * Dialog for logging food. Offers Indian and common food presets that auto-fill
+ * the form (so calories and macros update instantly), with a live detailed
+ * breakup of the entry. Fully offline.
  */
 @Composable
 fun AddFoodDialog(
@@ -53,8 +57,14 @@ fun AddFoodDialog(
     var fat by remember { mutableStateOf("") }
     var meal by remember { mutableStateOf(MealType.SNACK) }
     var search by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf<FoodCategory?>(FoodCategory.INDIAN) }
 
-    val presets = remember(search) { FoodCatalog.search(search) }
+    val presets = remember(search, category) { FoodCatalog.search(search, category) }
+
+    val cal = calories.toIntOrNull() ?: 0
+    val p = protein.toIntOrNull() ?: 0
+    val c = carbs.toIntOrNull() ?: 0
+    val f = fat.toIntOrNull() ?: 0
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -63,7 +73,7 @@ fun AddFoodDialog(
         title = { Text("Add food") },
         text = {
             Column(Modifier.fillMaxWidth()) {
-                // Meal type selector
+                // Meal type
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MealType.entries.forEach { type ->
                         FilterChip(
@@ -73,9 +83,13 @@ fun AddFoodDialog(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
-                // Custom entry
+                // Live detailed breakup
+                BreakupBar(calories = cal, protein = p, carbs = c, fat = f)
+                Spacer(Modifier.height(10.dp))
+
+                // Editable fields
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -94,21 +108,35 @@ fun AddFoodDialog(
                     NumberField(fat, { fat = it }, "Fat g", Modifier.weight(1f))
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(14.dp))
                 HorizontalDivider()
-                Spacer(Modifier.height(12.dp))
-                Text("Quick add", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(10.dp))
+
+                Text("Choose a food", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+
+                // Category filter
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    CategoryChip("All", category == null) { category = null }
+                    CategoryChip("Indian", category == FoodCategory.INDIAN) { category = FoodCategory.INDIAN }
+                    CategoryChip("Common", category == FoodCategory.COMMON) { category = FoodCategory.COMMON }
+                }
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
-                    label = { Text("Search common foods") },
+                    label = { Text("Search foods") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(
-                    modifier = Modifier.heightIn(max = 200.dp),
+                    modifier = Modifier.heightIn(max = 220.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(presets, key = { it.name }) { preset ->
@@ -120,7 +148,12 @@ fun AddFoodDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onAdd(preset.name, preset.calories, preset.protein, preset.carbs, preset.fat, meal)
+                                    // Auto-fill the form — calories/macros update instantly.
+                                    name = preset.name
+                                    calories = preset.calories.toString()
+                                    protein = preset.protein.toString()
+                                    carbs = preset.carbs.toString()
+                                    fat = preset.fat.toString()
                                 }
                         ) {
                             Row(
@@ -131,6 +164,11 @@ fun AddFoodDialog(
                                     Text(preset.name, style = MaterialTheme.typography.titleMedium)
                                     Text(
                                         preset.servingLabel,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        "P ${preset.protein}g · C ${preset.carbs}g · F ${preset.fat}g",
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -149,22 +187,58 @@ fun AddFoodDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = (calories.toIntOrNull() ?: 0) > 0,
+                enabled = cal > 0,
                 onClick = {
-                    onAdd(
-                        name.ifBlank { "Food" },
-                        calories.toIntOrNull() ?: 0,
-                        protein.toIntOrNull() ?: 0,
-                        carbs.toIntOrNull() ?: 0,
-                        fat.toIntOrNull() ?: 0,
-                        meal
-                    )
+                    onAdd(name.ifBlank { "Food" }, cal, p, c, f, meal)
                 }
             ) { Text("Add") }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@Composable
+private fun BreakupBar(calories: Int, protein: Int, carbs: Int, fat: Int) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("This entry", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "$calories kcal",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            MacroPill("P", protein)
+            Spacer(Modifier.width(8.dp))
+            MacroPill("C", carbs)
+            Spacer(Modifier.width(8.dp))
+            MacroPill("F", fat)
         }
+    }
+}
+
+@Composable
+private fun MacroPill(label: String, grams: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("${grams}g", style = MaterialTheme.typography.titleMedium)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label, style = MaterialTheme.typography.labelMedium) }
     )
 }
 

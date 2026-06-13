@@ -67,4 +67,18 @@ class WorkoutDataTest {
         val program = WorkoutScheduleSeed.programById(WorkoutScheduleSeed.DEFAULT_PROGRAM_ID)
         assertEquals(WorkoutScheduleSeed.DEFAULT_PROGRAM_ID, program.id)
     }
+
+    @Test
+    fun roundsIncreaseWithLevel() {
+        val beginner = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.BEGINNER)
+        val intermediate = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.INTERMEDIATE)
+        val advanced = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.ADVANCED)
+        assertTrue(beginner < intermediate && intermediate < advanced)
+    }
+
+    @Test
+    fun mixedWorkoutDrawsFromManyCategories() {
+        val categories = WorkoutScheduleSeed.mixedCircuit.exercises.map { it.category }.toSet()
+        assertTrue("Mixed circuit should span several categories", categories.size >= 4)
+    }
 }

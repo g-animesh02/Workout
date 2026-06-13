@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -16,9 +17,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -29,9 +33,12 @@ import com.fittrack.app.data.seed.ExerciseLibrary
 import com.fittrack.app.data.seed.WorkoutScheduleSeed
 import com.fittrack.app.ui.navigation.Routes
 import com.fittrack.app.ui.navigation.TopLevelDestination
+import com.fittrack.app.ui.screens.calendar.CalendarScreen
+import com.fittrack.app.ui.screens.calendar.CalendarViewModel
 import com.fittrack.app.ui.screens.exercise.ExerciseDetailScreen
 import com.fittrack.app.ui.screens.food.FoodScreen
 import com.fittrack.app.ui.screens.food.FoodViewModel
+import com.fittrack.app.ui.screens.player.WorkoutPlayerScreen
 import com.fittrack.app.ui.screens.schedule.ScheduleScreen
 import com.fittrack.app.ui.screens.schedule.ScheduleViewModel
 import com.fittrack.app.ui.screens.workout.WorkoutDetailScreen
@@ -83,10 +90,19 @@ private fun FitTrackAppRoot(startDestination: String) {
             widgetUpdater = WidgetUpdater(app)
         )
     )
+    val calendarViewModel: CalendarViewModel = viewModel(
+        factory = CalendarViewModel.Factory(
+            historyRepository = app.historyRepository,
+            settingsRepository = app.settingsRepository
+        )
+    )
+    val scheduleState by scheduleViewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute == Routes.SCHEDULE || currentRoute == Routes.FOOD
+    val showBottomBar = currentRoute == Routes.SCHEDULE ||
+        currentRoute == Routes.FOOD || currentRoute == Routes.CALENDAR
 
     androidx.compose.material3.Scaffold(
         bottomBar = {
@@ -107,7 +123,8 @@ private fun FitTrackAppRoot(startDestination: String) {
                             icon = {
                                 Icon(
                                     when (dest) {
-                                        TopLevelDestination.SCHEDULE -> Icons.Filled.CalendarMonth
+                                        TopLevelDestination.SCHEDULE -> Icons.Filled.FitnessCenter
+                                        TopLevelDestination.CALENDAR -> Icons.Filled.CalendarMonth
                                         TopLevelDestination.FOOD -> Icons.Filled.Restaurant
                                     },
                                     contentDescription = dest.label
@@ -136,6 +153,9 @@ private fun FitTrackAppRoot(startDestination: String) {
             composable(Routes.FOOD) {
                 FoodScreen(viewModel = foodViewModel)
             }
+            composable(Routes.CALENDAR) {
+                CalendarScreen(viewModel = calendarViewModel)
+            }
             composable(Routes.WORKOUT_DETAIL) { entry ->
                 val workoutId = entry.arguments?.getString(Routes.ARG_WORKOUT_ID)
                 val workout = workoutId?.let { WorkoutScheduleSeed.workoutById(it) }
@@ -145,6 +165,21 @@ private fun FitTrackAppRoot(startDestination: String) {
                         onBack = { navController.popBackStack() },
                         onExerciseClick = { exerciseId ->
                             navController.navigate(Routes.exerciseDetail(exerciseId))
+                        },
+                        onStart = { navController.navigate(Routes.player(workout.id)) }
+                    )
+                }
+            }
+            composable(Routes.PLAYER) { entry ->
+                val workoutId = entry.arguments?.getString(Routes.ARG_WORKOUT_ID)
+                val workout = workoutId?.let { WorkoutScheduleSeed.workoutById(it) }
+                if (workout != null) {
+                    WorkoutPlayerScreen(
+                        workout = workout,
+                        rounds = scheduleState.rounds,
+                        onExit = { navController.popBackStack() },
+                        onCompleted = {
+                            scope.launch { app.historyRepository.logWorkout(workout) }
                         }
                     )
                 }

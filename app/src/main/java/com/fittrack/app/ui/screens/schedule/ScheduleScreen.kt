@@ -1,6 +1,7 @@
 package com.fittrack.app.ui.screens.schedule
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,39 +16,39 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fittrack.app.data.model.Difficulty
 import com.fittrack.app.data.model.WeeklyProgram
 import com.fittrack.app.data.model.WorkoutDay
 import com.fittrack.app.data.model.WorkoutType
-import com.fittrack.app.ui.IconBadge
-import com.fittrack.app.ui.Pill
 import com.fittrack.app.ui.color
-import com.fittrack.app.ui.icon
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-/** Weekly training schedule — the app's home screen with a program selector. */
+/** Minimalist weekly schedule with program + level selection and custom editing. */
 @Composable
 fun ScheduleScreen(
     viewModel: ScheduleViewModel,
@@ -56,144 +57,166 @@ fun ScheduleScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val today = LocalDate.now().dayOfWeek
+    var editingDay by remember { mutableStateOf<DayOfWeek?>(null) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
-            Column {
-                Text("Your Week", style = MaterialTheme.typography.headlineMedium)
-                Text(
-                    "Pick a program and follow its weekly plan",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text("Your week", style = MaterialTheme.typography.headlineMedium)
         }
+
         item {
-            ProgramSelector(
-                programs = state.programs,
-                selectedId = state.selected.id,
+            ChipRow(
+                items = state.chips.map { it.id to it.name },
+                selectedId = state.selectedId,
                 onSelect = viewModel::selectProgram
             )
         }
-        item { ProgramSummary(state.selected) }
-        item { TodayHighlight(state.selected.dayFor(today)) }
+
         item {
-            Text(
-                "Weekly schedule",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = 4.dp)
+            LabeledChips(
+                label = "Level",
+                items = Difficulty.entries.map { it.name to it.label },
+                selectedId = state.level.name,
+                onSelect = { viewModel.setLevel(Difficulty.valueOf(it)) }
             )
         }
-        items(state.selected.days, key = { it.dayOfWeek.name }) { day ->
-            DayCard(
-                day = day,
-                isToday = day.dayOfWeek == today,
-                onClick = { day.workout?.let { onWorkoutClick(it.id) } }
+
+        item { ProgramSummary(state.selected, state.rounds, state.isCustom) }
+
+        item { TodayCard(state.selected.dayFor(today)) }
+
+        item {
+            WeekList(
+                program = state.selected,
+                today = today,
+                isCustom = state.isCustom,
+                onDayClick = { day ->
+                    if (state.isCustom) editingDay = day.dayOfWeek
+                    else day.workout?.let { onWorkoutClick(it.id) }
+                }
             )
         }
         item { Spacer(Modifier.height(8.dp)) }
-        item { FreeBanner() }
+    }
+
+    val day = editingDay
+    if (day != null) {
+        CustomDayPickerDialog(
+            day = day,
+            workouts = state.allWorkouts,
+            currentId = state.selected.dayFor(day).workout?.id,
+            onPick = { workoutId ->
+                viewModel.setCustomDay(day, workoutId)
+                editingDay = null
+            },
+            onDismiss = { editingDay = null }
+        )
     }
 }
 
 @Composable
-private fun ProgramSelector(
-    programs: List<WeeklyProgram>,
-    selectedId: String,
-    onSelect: (String) -> Unit
-) {
+private fun ChipRow(items: List<Pair<String, String>>, selectedId: String, onSelect: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        programs.forEach { program ->
-            val selected = program.id == selectedId
-            val accent = program.accent.color()
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = if (selected) accent.copy(alpha = 0.18f)
-                    else MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.clickable { onSelect(program.id) }
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (selected) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = accent,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                    }
-                    Text(
-                        program.name,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (selected) accent else MaterialTheme.colorScheme.onSurface,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                    )
-                }
-            }
+        items.forEach { (id, label) -> SelectChip(label, id == selectedId) { onSelect(id) } }
+    }
+}
+
+@Composable
+private fun LabeledChips(
+    label: String,
+    items: List<Pair<String, String>>,
+    selectedId: String,
+    onSelect: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            label.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items.forEach { (id, text) -> SelectChip(text, id == selectedId) { onSelect(id) } }
         }
     }
 }
 
 @Composable
-private fun ProgramSummary(program: WeeklyProgram) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth()
+private fun SelectChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val border = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .border(1.dp, border, RoundedCornerShape(50))
+            .clickable(onClick = onClick)
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(program.name, style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.width(8.dp))
-                Pill(text = "${program.trainingDays} days/week", color = program.accent.color())
-            }
-            Spacer(Modifier.height(4.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ProgramSummary(program: WeeklyProgram, rounds: Int, isCustom: Boolean) {
+    Column {
+        Text(program.tagline, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(2.dp))
+        Text(
+            program.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (!isCustom) {
+            Spacer(Modifier.height(6.dp))
             Text(
-                program.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                "${program.trainingDays} days/week · suggested $rounds rounds",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
 }
 
 @Composable
-private fun TodayHighlight(day: WorkoutDay) {
-    val type = day.workout?.type ?: WorkoutType.REST
-    val accent = type.color()
-    Card(
-        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.12f)),
+private fun TodayCard(day: WorkoutDay) {
+    val accent = (day.workout?.type ?: WorkoutType.REST).color()
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconBadge(icon = type.icon(), color = accent, sizeDp = 52)
+        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(accent)
+            )
             Spacer(Modifier.width(14.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     "TODAY",
                     style = MaterialTheme.typography.labelMedium,
-                    color = accent,
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(day.workout?.name ?: "Rest Day", style = MaterialTheme.typography.titleLarge)
                 Text(
-                    day.workout?.focus ?: "Take it easy and recover",
+                    day.workout?.focus ?: "Recover and recharge",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -203,98 +226,68 @@ private fun TodayHighlight(day: WorkoutDay) {
 }
 
 @Composable
-private fun DayCard(day: WorkoutDay, isToday: Boolean, onClick: () -> Unit) {
-    val type = day.workout?.type ?: WorkoutType.REST
-    val accent = type.color()
-    val dayLabel = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = day.workout != null, onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isToday) 4.dp else 1.dp)
+private fun WeekList(
+    program: WeeklyProgram,
+    today: DayOfWeek,
+    isCustom: Boolean,
+    onDayClick: (WorkoutDay) -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(40.dp)
-            ) {
-                Text(
-                    dayLabel.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (isToday) accent else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium
-                )
-                if (isToday) {
-                    Spacer(Modifier.height(2.dp))
-                    Box(
-                        Modifier
-                            .size(6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(accent)
-                    )
+        Column {
+            program.days.forEachIndexed { index, day ->
+                DayRow(day, day.dayOfWeek == today, isCustom, onClick = { onDayClick(day) })
+                if (index < program.days.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
-            }
-            Spacer(Modifier.width(8.dp))
-            IconBadge(icon = type.icon(), color = accent)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(day.title, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(4.dp))
-                if (day.workout != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Pill(text = type.label, color = accent)
-                        Spacer(Modifier.width(6.dp))
-                        Icon(
-                            Icons.Filled.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.width(3.dp))
-                        Text(
-                            "${day.workout.estimatedMinutes} min · ${day.workout.exercises.size} exercises",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    Text(
-                        "Active recovery — light stretching or a walk",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            if (day.workout != null) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open workout",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
 }
 
 @Composable
-private fun FreeBanner() {
-    Box(
-        Modifier
+private fun DayRow(day: WorkoutDay, isToday: Boolean, isCustom: Boolean, onClick: () -> Unit) {
+    val accent = (day.workout?.type ?: WorkoutType.REST).color()
+    val dayLabel = day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-            .padding(16.dp)
+            .clickable(enabled = isCustom || day.workout != null, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "100% free & offline. No account, no ads, no subscriptions.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Medium
+            dayLabel.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
+            modifier = Modifier.width(38.dp)
+        )
+        Box(
+            Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(if (day.workout != null) accent else MaterialTheme.colorScheme.outline)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(day.title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                if (day.workout != null) "${day.workout.type.label} · ${day.workout.estimatedMinutes} min"
+                else "Rest day",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Icon(
+            if (isCustom) Icons.Filled.Edit else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = if (isCustom) "Edit day" else "Open workout",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp)
         )
     }
 }

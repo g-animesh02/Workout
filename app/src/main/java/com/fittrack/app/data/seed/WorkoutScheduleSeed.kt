@@ -126,6 +126,47 @@ object WorkoutScheduleSeed {
     )
 
     // =====================================================================
+    // Mixed workouts — 2–3 moves from every category
+    // =====================================================================
+
+    val mixedCircuit = Workout(
+        id = "mixed_circuit",
+        name = "Mixed Circuit",
+        type = WorkoutType.FULL_BODY,
+        description = "A little of everything: 2–3 moves each from HIIT, strength, core, cardio and " +
+            "mobility. A balanced, varied session that hits the whole body. Repeat for 2–3 rounds.",
+        focus = "HIIT · Strength · Core · Cardio · Mobility",
+        difficulty = Difficulty.INTERMEDIATE,
+        estimatedMinutes = 28,
+        exercises = listOf(
+            // HIIT
+            Ex.jumpingJacks, Ex.burpees,
+            // Strength
+            Ex.pushUp, Ex.squat,
+            // Core
+            Ex.plank, Ex.bicycleCrunch,
+            // Cardio
+            Ex.highKnees, Ex.mountainClimbers,
+            // Mobility
+            Ex.downwardDog, Ex.worldsGreatest
+        )
+    )
+
+    val mixedExpress = Workout(
+        id = "mixed_express",
+        name = "Mixed Express",
+        type = WorkoutType.FULL_BODY,
+        description = "A shorter mixed session pulling one or two moves from each style for a quick, " +
+            "well-rounded workout when you're short on time.",
+        focus = "Quick · Full body · Varied",
+        difficulty = Difficulty.BEGINNER,
+        estimatedMinutes = 18,
+        exercises = listOf(
+            Ex.jumpingJacks, Ex.squat, Ex.pushUp, Ex.plank, Ex.skaters, Ex.catCow
+        )
+    )
+
+    // =====================================================================
     // Gym strength split workouts (Push / Pull / Legs)
     // =====================================================================
 
@@ -318,9 +359,36 @@ object WorkoutScheduleSeed {
         )
     )
 
-    val programs: List<WeeklyProgram> = listOf(balanced, hiitProgram, strengthPPL, broSplit)
+    val mixedProgram = WeeklyProgram(
+        id = "mixed",
+        name = "Mixed",
+        tagline = "A bit of every style",
+        description = "Variety-focused week built from mixed circuits that combine 2–3 moves from each " +
+            "training style, with core and recovery. Great if you get bored easily.",
+        accent = WorkoutType.FULL_BODY,
+        days = listOf(
+            WorkoutDay(DayOfWeek.MONDAY, "Mixed Circuit", mixedCircuit),
+            WorkoutDay(DayOfWeek.TUESDAY, "Core & Abs", coreCrusher),
+            WorkoutDay(DayOfWeek.WEDNESDAY, "Mixed Express", mixedExpress),
+            WorkoutDay(DayOfWeek.THURSDAY, "Mobility & Stretch", activeRecovery),
+            WorkoutDay(DayOfWeek.FRIDAY, "Mixed Circuit", mixedCircuit),
+            WorkoutDay(DayOfWeek.SATURDAY, "Cardio Burner", cardioBurner),
+            rest(DayOfWeek.SUNDAY)
+        )
+    )
+
+    val programs: List<WeeklyProgram> =
+        listOf(balanced, hiitProgram, strengthPPL, broSplit, mixedProgram)
 
     const val DEFAULT_PROGRAM_ID = "balanced"
+    const val CUSTOM_PROGRAM_ID = "custom"
+
+    /** Suggested number of circuit rounds for a given difficulty level. */
+    fun roundsForLevel(level: Difficulty): Int = when (level) {
+        Difficulty.BEGINNER -> 2
+        Difficulty.INTERMEDIATE -> 3
+        Difficulty.ADVANCED -> 4
+    }
 
     fun programById(id: String?): WeeklyProgram =
         programs.firstOrNull { it.id == id } ?: balanced

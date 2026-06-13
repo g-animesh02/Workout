@@ -7,8 +7,10 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.fittrack.app.data.db.dao.FoodDao
+import com.fittrack.app.data.db.dao.WorkoutLogDao
 import com.fittrack.app.data.db.entity.FoodEntry
 import com.fittrack.app.data.db.entity.MealType
+import com.fittrack.app.data.db.entity.WorkoutLog
 
 class Converters {
     @TypeConverter
@@ -19,11 +21,12 @@ class Converters {
         runCatching { MealType.valueOf(value) }.getOrDefault(MealType.SNACK)
 }
 
-@Database(entities = [FoodEntry::class], version = 1, exportSchema = false)
+@Database(entities = [FoodEntry::class, WorkoutLog::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun foodDao(): FoodDao
+    abstract fun workoutLogDao(): WorkoutLogDao
 
     companion object {
         @Volatile
