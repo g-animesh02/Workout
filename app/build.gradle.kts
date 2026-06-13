@@ -13,16 +13,33 @@ android {
         applicationId = "com.fittrack.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
 
+    // A fixed, checked-in signing key so every build (CI, release, local) is
+    // signed identically. This lets updates install over each other instead of
+    // failing with a signature mismatch. It is a self-signed key for a free
+    // testing app — for a Play Store release, use a secret-managed keystore.
+    signingConfigs {
+        create("shared") {
+            storeFile = file("fittrack.keystore")
+            storePassword = "fittrack123"
+            keyAlias = "fittrack"
+            keyPassword = "fittrack123"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("shared")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("shared")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

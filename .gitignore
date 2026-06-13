@@ -14,3 +14,4 @@ build/
 *.aab
 *.keystore
 !debug.keystore
+!app/fittrack.keystore
