@@ -26,7 +26,6 @@ data class ScheduleUiState(
     val selectedId: String = WorkoutScheduleSeed.DEFAULT_PROGRAM_ID,
     val selected: WeeklyProgram = WorkoutScheduleSeed.balanced,
     val level: Difficulty = Difficulty.INTERMEDIATE,
-    val rounds: Int = 3,
     val allWorkouts: List<Workout> = WorkoutScheduleSeed.allWorkouts
 ) {
     val isCustom: Boolean get() = selectedId == WorkoutScheduleSeed.CUSTOM_PROGRAM_ID
@@ -57,7 +56,6 @@ class ScheduleViewModel(
                 selectedId = if (id == WorkoutScheduleSeed.CUSTOM_PROGRAM_ID) id else selected.id,
                 selected = selected,
                 level = level,
-                rounds = WorkoutScheduleSeed.roundsForLevel(level),
                 allWorkouts = WorkoutScheduleSeed.allWorkouts
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScheduleUiState(chips = chips))

@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
@@ -27,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,82 +48,109 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fittrack.app.data.model.Exercise
+import com.fittrack.app.data.model.Difficulty
 import com.fittrack.app.data.model.Workout
+import com.fittrack.app.data.seed.LevelScaling
+import com.fittrack.app.data.seed.WorkoutStep
 import com.fittrack.app.ui.color
 import kotlinx.coroutines.delay
 
 private enum class Phase { WORK, REST }
 
-private const val DEFAULT_WORK = 45
-private const val DEFAULT_REST = 20
-
 /**
- * Guided workout runner with start / pause / stop, auto-advancing through each
- * exercise and round with a countdown timer. Logs the workout when finished.
+ * Guided workout runner. The session is a single, level-scaled pass through the
+ * exercises (longer time, more reps and more exercises at higher levels — not
+ * extra rounds). Time, rest and reps can all be adjusted live during execution.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutPlayerScreen(
     workout: Workout,
-    rounds: Int,
+    level: Difficulty,
     onExit: () -> Unit,
     onCompleted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val exercises = workout.exercises
-    val totalRounds = rounds.coerceAtLeast(1)
+    val steps = remember(workout.id, level) { LevelScaling.plan(workout.exercises, level) }
+    if (steps.isEmpty()) {
+        LaunchedEffect(Unit) { onExit() }
+        return
+    }
 
-    var round by remember { mutableIntStateOf(1) }
     var index by remember { mutableIntStateOf(0) }
     var phase by remember { mutableStateOf(Phase.WORK) }
-    var secondsLeft by remember { mutableIntStateOf(exercises.firstOrNull()?.workSeconds ?: DEFAULT_WORK) }
+    var secondsLeft by remember { mutableIntStateOf(steps[0].workSeconds) }
     var running by remember { mutableStateOf(true) }
     var finished by remember { mutableStateOf(false) }
+    // When set, after the current REST ends we resume WORK on the same exercise
+    // with this many seconds (used by the "add rest" break button).
+    var resumeWork by remember { mutableStateOf<Int?>(null) }
+    val repsOverride = remember { mutableStateMapOf<Int, Int>() }
 
-    fun workSecondsFor(i: Int) = exercises[i].workSeconds ?: DEFAULT_WORK
-    fun restSecondsFor(i: Int) = exercises[i].restSeconds ?: DEFAULT_REST
+    fun step() = steps[index]
+    fun isLast() = index >= steps.lastIndex
 
-    fun isLastExercise() = round >= totalRounds && index >= exercises.lastIndex
-
-    fun goToExercise(newIndex: Int, newRound: Int) {
-        round = newRound
-        index = newIndex
+    fun startWork(i: Int) {
+        index = i
         phase = Phase.WORK
-        secondsLeft = workSecondsFor(newIndex)
+        secondsLeft = steps[i].workSeconds
+        resumeWork = null
     }
 
     fun advance() {
         when (phase) {
             Phase.WORK -> {
-                if (isLastExercise()) {
+                if (isLast()) {
                     finished = true
                     running = false
                 } else {
                     phase = Phase.REST
-                    secondsLeft = restSecondsFor(index)
+                    secondsLeft = step().restSeconds
                 }
             }
             Phase.REST -> {
-                if (index < exercises.lastIndex) goToExercise(index + 1, round)
-                else goToExercise(0, round + 1)
+                val resume = resumeWork
+                if (resume != null) {
+                    phase = Phase.WORK
+                    secondsLeft = resume
+                    resumeWork = null
+                } else {
+                    startWork(index + 1)
+                }
             }
         }
     }
 
     fun next() {
-        if (isLastExercise()) { finished = true; running = false }
-        else if (index < exercises.lastIndex) goToExercise(index + 1, round)
-        else goToExercise(0, round + 1)
+        if (isLast()) { finished = true; running = false } else startWork(index + 1)
     }
 
     fun previous() {
-        if (index > 0) goToExercise(index - 1, round)
-        else if (round > 1) goToExercise(exercises.lastIndex, round - 1)
-        else goToExercise(0, 1)
+        startWork(if (index > 0) index - 1 else 0)
     }
 
-    // Ticking timer — restarts whenever running toggles.
+    fun addTime(delta: Int) {
+        secondsLeft = (secondsLeft + delta).coerceAtLeast(1)
+    }
+
+    fun addRest() {
+        if (phase == Phase.WORK) {
+            resumeWork = secondsLeft
+            phase = Phase.REST
+            secondsLeft = 30
+        } else {
+            secondsLeft += 15
+        }
+    }
+
+    fun baseReps(): Int? =
+        step().reps?.let { Regex("\\d+").find(it)?.value?.toIntOrNull() }
+
+    fun adjustReps(delta: Int) {
+        val current = repsOverride[index] ?: baseReps() ?: return
+        repsOverride[index] = (current + delta).coerceAtLeast(1)
+    }
+
     LaunchedEffect(running, finished) {
         if (!running || finished) return@LaunchedEffect
         while (true) {
@@ -129,10 +160,7 @@ fun WorkoutPlayerScreen(
         }
     }
 
-    // Log completion once.
-    LaunchedEffect(finished) {
-        if (finished) onCompleted()
-    }
+    LaunchedEffect(finished) { if (finished) onCompleted() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -152,17 +180,21 @@ fun WorkoutPlayerScreen(
             CompletionView(workout = workout, onDone = onExit, modifier = Modifier.padding(padding))
         } else {
             RunningView(
-                exercise = exercises[index],
+                step = step(),
                 phase = phase,
                 secondsLeft = secondsLeft,
-                round = round,
-                totalRounds = totalRounds,
                 position = index + 1,
-                total = exercises.size,
+                total = steps.size,
                 running = running,
+                repsDisplay = repsOverride[index]?.let { "$it reps" } ?: step().reps,
                 onToggle = { running = !running },
                 onNext = ::next,
                 onPrev = ::previous,
+                onAddTime = { addTime(15) },
+                onSubTime = { addTime(-15) },
+                onAddRest = ::addRest,
+                onRepsUp = { adjustReps(1) },
+                onRepsDown = { adjustReps(-1) },
                 modifier = Modifier.padding(padding)
             )
         }
@@ -171,42 +203,46 @@ fun WorkoutPlayerScreen(
 
 @Composable
 private fun RunningView(
-    exercise: Exercise,
+    step: WorkoutStep,
     phase: Phase,
     secondsLeft: Int,
-    round: Int,
-    totalRounds: Int,
     position: Int,
     total: Int,
     running: Boolean,
+    repsDisplay: String?,
     onToggle: () -> Unit,
     onNext: () -> Unit,
     onPrev: () -> Unit,
+    onAddTime: () -> Unit,
+    onSubTime: () -> Unit,
+    onAddRest: () -> Unit,
+    onRepsUp: () -> Unit,
+    onRepsDown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val accent = exercise.category.color()
+    val accent = step.exercise.category.color()
     val isRest = phase == Phase.REST
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Round $round of $totalRounds · Exercise $position of $total",
+            "Exercise $position of $total",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
-            if (isRest) "REST" else exercise.category.label.uppercase(),
+            if (isRest) "REST" else step.exercise.category.label.uppercase(),
             style = MaterialTheme.typography.labelLarge,
             color = if (isRest) MaterialTheme.colorScheme.onSurfaceVariant else accent,
             fontWeight = FontWeight.Bold
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -215,28 +251,32 @@ private fun RunningView(
             )
             Text(
                 formatTime(secondsLeft),
-                fontSize = 64.sp,
+                fontSize = 60.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
-        Spacer(Modifier.height(28.dp))
 
-        Text(
-            if (isRest) "Up next" else exercise.name,
-            style = MaterialTheme.typography.headlineMedium
-        )
-        if (!isRest && exercise.dosage.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                exercise.dosage,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        // Live time edit
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SmallPill("−15s", onSubTime)
+            SmallPill("+15s", onAddTime)
+            SmallPill(if (isRest) "+15s rest" else "+ Rest", onAddRest)
         }
-        if (isRest) {
-            Spacer(Modifier.height(4.dp))
-            Text(exercise.name, style = MaterialTheme.typography.titleMedium, color = accent)
+
+        Spacer(Modifier.height(18.dp))
+        Text(
+            if (isRest) "Up next: ${step.exercise.name}" else step.exercise.name,
+            style = MaterialTheme.typography.headlineSmall
+        )
+        if (!isRest && repsDisplay != null) {
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                RoundIcon(Icons.Filled.Remove, "Fewer reps", onRepsDown)
+                Text(repsDisplay, style = MaterialTheme.typography.titleLarge)
+                RoundIcon(Icons.Filled.Add, "More reps", onRepsUp)
+            }
         }
 
         Spacer(Modifier.weight(1f))
@@ -264,12 +304,34 @@ private fun RunningView(
                 Icon(Icons.Filled.SkipNext, contentDescription = "Skip", modifier = Modifier.size(34.dp))
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
         Text(
-            if (running) "Tap pause to take a break" else "Paused",
+            if (running) "Adjust time and reps anytime" else "Paused",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+private fun SmallPill(label: String, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, contentPadding = PaddingValuesSmall) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+private val PaddingValuesSmall = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+
+@Composable
+private fun RoundIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, desc: String, onClick: () -> Unit) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Icon(icon, contentDescription = desc, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
     }
 }
 

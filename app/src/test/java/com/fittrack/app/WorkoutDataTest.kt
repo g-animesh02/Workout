@@ -69,11 +69,14 @@ class WorkoutDataTest {
     }
 
     @Test
-    fun roundsIncreaseWithLevel() {
-        val beginner = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.BEGINNER)
-        val intermediate = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.INTERMEDIATE)
-        val advanced = WorkoutScheduleSeed.roundsForLevel(com.fittrack.app.data.model.Difficulty.ADVANCED)
-        assertTrue(beginner < intermediate && intermediate < advanced)
+    fun higherLevelMeansLongerWorkAndMoreExercises() {
+        val ex = WorkoutScheduleSeed.hiitBlast.exercises
+        val beginner = com.fittrack.app.data.seed.LevelScaling.plan(ex, com.fittrack.app.data.model.Difficulty.BEGINNER)
+        val advanced = com.fittrack.app.data.seed.LevelScaling.plan(ex, com.fittrack.app.data.model.Difficulty.ADVANCED)
+        assertTrue("Advanced should have at least as many exercises", advanced.size >= beginner.size)
+        val baseWork = com.fittrack.app.data.seed.LevelScaling.workSeconds(40, com.fittrack.app.data.model.Difficulty.BEGINNER)
+        val advWork = com.fittrack.app.data.seed.LevelScaling.workSeconds(40, com.fittrack.app.data.model.Difficulty.ADVANCED)
+        assertTrue("Advanced work time should exceed beginner", advWork > baseWork)
     }
 
     @Test

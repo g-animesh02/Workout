@@ -42,6 +42,7 @@ import com.fittrack.app.data.model.Difficulty
 import com.fittrack.app.data.model.WeeklyProgram
 import com.fittrack.app.data.model.WorkoutDay
 import com.fittrack.app.data.model.WorkoutType
+import com.fittrack.app.data.seed.LevelScaling
 import com.fittrack.app.ui.color
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -85,9 +86,9 @@ fun ScheduleScreen(
             )
         }
 
-        item { ProgramSummary(state.selected, state.level.label, state.rounds) }
+        item { ProgramSummary(state.selected, state.level) }
 
-        item { TodayCard(state.selected.dayFor(today), state.level.label, state.rounds) }
+        item { TodayCard(state.selected.dayFor(today), state.level) }
 
         item {
             WeekList(
@@ -178,7 +179,7 @@ private fun SelectChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ProgramSummary(program: WeeklyProgram, levelLabel: String, rounds: Int) {
+private fun ProgramSummary(program: WeeklyProgram, level: Difficulty) {
     Column {
         Text(program.tagline, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(2.dp))
@@ -189,7 +190,7 @@ private fun ProgramSummary(program: WeeklyProgram, levelLabel: String, rounds: I
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            "${program.trainingDays} days/week · $levelLabel · $rounds rounds per workout",
+            "${program.trainingDays} days/week · ${level.label}: ${LevelScaling.summary(level)}",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -197,7 +198,7 @@ private fun ProgramSummary(program: WeeklyProgram, levelLabel: String, rounds: I
 }
 
 @Composable
-private fun TodayCard(day: WorkoutDay, levelLabel: String, rounds: Int) {
+private fun TodayCard(day: WorkoutDay, level: Difficulty) {
     val accent = (day.workout?.type ?: WorkoutType.REST).color()
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -228,7 +229,7 @@ private fun TodayCard(day: WorkoutDay, levelLabel: String, rounds: Int) {
                 if (day.workout != null) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "$levelLabel · $rounds rounds",
+                        "${level.label} · ${LevelScaling.summary(level)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = accent,
                         fontWeight = FontWeight.Bold

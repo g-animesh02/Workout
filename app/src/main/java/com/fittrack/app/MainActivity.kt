@@ -170,8 +170,7 @@ private fun FitTrackAppRoot(startDestination: String) {
                 if (workout != null) {
                     WorkoutDetailScreen(
                         workout = workout,
-                        rounds = scheduleState.rounds,
-                        levelLabel = scheduleState.level.label,
+                        level = scheduleState.level,
                         onBack = { navController.popBackStack() },
                         onExerciseClick = { exerciseId ->
                             navController.navigate(Routes.exerciseDetail(exerciseId))
@@ -186,7 +185,7 @@ private fun FitTrackAppRoot(startDestination: String) {
                 if (workout != null) {
                     WorkoutPlayerScreen(
                         workout = workout,
-                        rounds = scheduleState.rounds,
+                        level = scheduleState.level,
                         onExit = { navController.popBackStack() },
                         onCompleted = {
                             scope.launch { app.historyRepository.logWorkout(workout) }

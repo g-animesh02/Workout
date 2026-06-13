@@ -383,13 +383,6 @@ object WorkoutScheduleSeed {
     const val DEFAULT_PROGRAM_ID = "balanced"
     const val CUSTOM_PROGRAM_ID = "custom"
 
-    /** Suggested number of circuit rounds for a given difficulty level. */
-    fun roundsForLevel(level: Difficulty): Int = when (level) {
-        Difficulty.BEGINNER -> 2
-        Difficulty.INTERMEDIATE -> 3
-        Difficulty.ADVANCED -> 4
-    }
-
     fun programById(id: String?): WeeklyProgram =
         programs.firstOrNull { it.id == id } ?: balanced
 
