@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="14dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today's Workout"
+        android:textColor="#F97316"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HIIT Blast"
+        android:textColor="#0F172A"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="6dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap to view schedule"
+        android:textColor="@color/emerald_dark"
+        android:textSize="12sp"
+        android:layout_marginTop="6dp" />
+</LinearLayout>

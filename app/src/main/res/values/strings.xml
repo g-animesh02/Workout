@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FitTrack</string>
+    <string name="widget_schedule_label">FitTrack — Today\'s Workout</string>
+    <string name="widget_food_label">FitTrack — Calories</string>
+    <string name="widget_food_description">See today\'s calories and quickly add food.</string>
+    <string name="widget_schedule_description">See today\'s scheduled workout.</string>
+</resources>

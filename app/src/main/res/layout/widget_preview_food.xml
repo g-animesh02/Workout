@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="14dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today's Calories"
+        android:textColor="#64748B"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="@color/emerald_dark"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Add food"
+        android:background="@color/emerald"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:layout_marginTop="10dp" />
+</LinearLayout>
