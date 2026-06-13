@@ -202,6 +202,7 @@ private fun Tips(exercise: Exercise) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TargetMuscles(exercise: Exercise, accent: Color) {
     SectionCard(title = "Target muscles") {
