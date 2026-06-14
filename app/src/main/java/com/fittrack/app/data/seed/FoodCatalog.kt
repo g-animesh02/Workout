@@ -58,7 +58,17 @@ object FoodCatalog {
         PresetFood("Pakora", "1 cup", 300, 7, 28, 18, FoodCategory.INDIAN),
         PresetFood("Masala Chai", "1 cup", 90, 2, 12, 3, FoodCategory.INDIAN),
         PresetFood("Sweet Lassi", "1 glass", 180, 6, 30, 4, FoodCategory.INDIAN),
-        PresetFood("Gulab Jamun", "1 piece", 150, 2, 25, 5, FoodCategory.INDIAN)
+        PresetFood("Gulab Jamun", "1 piece", 150, 2, 25, 5, FoodCategory.INDIAN),
+        PresetFood("Boiled Chana", "1 cup", 269, 15, 45, 4, FoodCategory.INDIAN),
+        PresetFood("Roasted Chana", "30 g", 120, 6, 20, 2, FoodCategory.INDIAN),
+        PresetFood("Sattu Drink", "1 glass", 180, 11, 28, 3, FoodCategory.INDIAN),
+        PresetFood("Moong Sprouts", "1 cup", 125, 10, 22, 1, FoodCategory.INDIAN),
+        PresetFood("Egg Bhurji", "2 eggs", 200, 13, 4, 15, FoodCategory.INDIAN),
+        PresetFood("Paneer Bhurji", "1 cup", 280, 16, 8, 20, FoodCategory.INDIAN),
+        PresetFood("Besan Chilla", "1 piece", 130, 7, 14, 5, FoodCategory.INDIAN),
+        PresetFood("Dhokla", "2 pieces", 160, 6, 24, 4, FoodCategory.INDIAN),
+        PresetFood("Aloo Tikki", "1 piece", 150, 3, 22, 6, FoodCategory.INDIAN),
+        PresetFood("Banana Shake", "1 glass", 200, 6, 35, 4, FoodCategory.INDIAN)
     )
 
     /** Common everyday foods. */
@@ -85,7 +95,12 @@ object FoodCatalog {
         PresetFood("Tofu", "100 g", 76, 8, 2, 5),
         PresetFood("Lentils", "1 cup cooked", 230, 18, 40, 1),
         PresetFood("Cheddar Cheese", "28 g", 113, 7, 0, 9),
-        PresetFood("Mixed Salad", "2 cups + dressing", 150, 3, 10, 11)
+        PresetFood("Mixed Salad", "2 cups + dressing", 150, 3, 10, 11),
+        PresetFood("Omelette (2 eggs)", "2 eggs", 220, 14, 2, 17),
+        PresetFood("Boiled Eggs (2)", "2 large", 156, 12, 1, 11),
+        PresetFood("Egg Whites", "3 whites", 51, 11, 1, 0),
+        PresetFood("Peanuts", "30 g", 170, 7, 6, 14),
+        PresetFood("Cottage Cheese", "100 g", 98, 11, 3, 4)
     )
 
     val presets: List<PresetFood> = indian + common
