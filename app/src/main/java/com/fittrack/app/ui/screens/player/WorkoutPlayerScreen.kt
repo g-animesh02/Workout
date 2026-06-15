@@ -186,6 +186,8 @@ fun WorkoutPlayerScreen(
                 position = index + 1,
                 total = steps.size,
                 running = running,
+                nextExerciseName = if (resumeWork != null) step().exercise.name
+                    else steps.getOrNull(index + 1)?.exercise?.name ?: step().exercise.name,
                 repsDisplay = repsOverride[index]?.let { "$it reps" } ?: step().reps,
                 onToggle = { running = !running },
                 onNext = ::next,
@@ -209,6 +211,7 @@ private fun RunningView(
     position: Int,
     total: Int,
     running: Boolean,
+    nextExerciseName: String,
     repsDisplay: String?,
     onToggle: () -> Unit,
     onNext: () -> Unit,
@@ -267,7 +270,7 @@ private fun RunningView(
 
         Spacer(Modifier.height(18.dp))
         Text(
-            if (isRest) "Up next: ${step.exercise.name}" else step.exercise.name,
+            if (isRest) "Up next: $nextExerciseName" else step.exercise.name,
             style = MaterialTheme.typography.headlineSmall
         )
         if (!isRest && repsDisplay != null) {
